@@ -1,79 +1,143 @@
----
-<<<<<<< HEAD
-title: medical-triage-env
-sdk: docker
-app_port: 8000
-colorFrom: blue
-colorTo: green
----
+# Medical Triage Environment
 
-## Medical Triage Environment
+An OpenEnv-style emergency department triage benchmark built around the Emergency Severity Index (ESI 1-5). The agent receives a structured patient presentation and must either classify urgency or ask a focused clarifying question when more information is needed.
 
-An OpenEnv-style environment for emergency department triage using the Emergency Severity Index (ESI 1-5).
+This repo includes 20 clinical scenarios across cardiovascular, neurological, infectious, respiratory, and abdominal/metabolic cases. The environment adds partial observability, stochastic vital drift, deterministic scoring, and safety-focused undertriage penalties.
 
-## Overview
-The agent receives structured patient presentations and must either classify urgency or request a clarifying question when additional history is needed. The benchmark emphasizes triage prioritization, clinical reasoning, and safe escalation.
+## What’s Included
 
-## What you can realistically do (hackathon-ready)
-You likely *won’t* train a “frontier” model on ~20 cases. You *can* win a hackathon by showing:
-- a working interactive API (`/reset`, `/step`)
-- a repeatable eval split with safety metrics (undertriage rate)
-- cheap text augmentation + an SFT-style dataset generator (no extra corpus required)
+- FastAPI environment with `/reset`, `/step`, `/state`, `/tasks`, and `/health` endpoints.
+- Structured observations and actions for triage-style LLM agents.
+- Episode grading with reward shaping, safety modifiers, and telemetry.
+- A deterministic baseline evaluator for train/test splits.
+- A small JSONL dataset generator for SFT-style experiments.
+- A smoke-test script for publishing and API redaction checks.
 
-## Reward Summary
-- ESI accuracy: 50%
-- Reasoning quality: 30%
-- Action appropriateness: 20%
-- Undertriage penalty: applied for dangerous low-acuity assignments
-- Urgency bonus: correct ESI on early steps
-- Step penalty: small penalty per additional step
+## Quick Start
 
-## Setup
+### Local install
+
 ```bash
 pip install -r requirements.txt
-docker build -t medical-triage-env .
-docker run -p 8000:8000 medical-triage-env
-openenv validate
-python inference.py
 ```
 
-## Hackathon scripts
-Generate a small supervised dataset (JSONL) from the existing task corpus:
+### Run the API server
 
 ```bash
-python scripts/make_sft_dataset.py --out data/sft.jsonl --variants-per-task 8
+uvicorn medical_triage_env.env:app --host 0.0.0.0 --port 8000
 ```
 
-Run a deterministic baseline eval on a held-out split:
+You can also use the project script defined in `pyproject.toml`:
+
+```bash
+python -m server.app
+```
+
+### Run with Docker
+
+```bash
+docker build -t medical-triage-env .
+docker run -p 8000:8000 medical-triage-env
+```
+
+## API Workflow
+
+1. `POST /reset` to start a new episode.
+2. `POST /step` with a `session_id` and a `TriageAction` payload.
+3. `GET /state?session_id=...` to inspect the current episode state.
+4. `GET /tasks` to list tasks only when `ENV=development`; production mode redacts the list.
+
+Minimal action schema:
+
+```json
+{
+	"action_type": "classify",
+	"esi_level": 2,
+	"reasoning": "Clinical reasoning text",
+	"recommended_actions": ["12-lead ECG", "IV access"],
+	"confidence": 0.8
+}
+```
+
+For a clarification step, set `action_type` to `clarify` and provide `clarifying_question` instead of `esi_level`.
+
+## Example Episode
+
+```bash
+curl -X POST http://localhost:8000/reset -H "Content-Type: application/json" -d '{"task_id":"classic-stemi"}'
+```
+
+The response includes an opaque `session_id`. Use that value in subsequent `/step` requests:
+
+```bash
+curl -X POST http://localhost:8000/step -H "Content-Type: application/json" -d '{
+	"session_id": "<session_id>",
+	"action": {
+		"action_type": "clarify",
+		"clarifying_question": "Any relevant history, medications, or repeat vitals?",
+		"reasoning": "I need high-yield missing information before classifying.",
+		"recommended_actions": [],
+		"confidence": 0.45
+	}
+}'
+```
+
+## Evaluation And Baselines
+
+Run the deterministic baseline split evaluator:
 
 ```bash
 python scripts/eval_split.py --test-n 5 --episodes-per-task 3
 ```
 
-Pre-publish smoke test (run with the server already running on `localhost:8000`):
+Generate a small supervised dataset from the task corpus:
+
+```bash
+python scripts/make_sft_dataset.py --out data/sft.jsonl --variants-per-task 8
+```
+
+Run the publish smoke test against a running server:
 
 ```bash
 python scripts/smoke_publish.py
 ```
 
-## Environment Variables
-- `API_BASE_URL`
-- `API_KEY`
-- `MODEL_NAME`
-- `BASE_URL`
+## Inference Client
 
-Use `.env` only for local development. Do not commit secrets.
+`inference.py` runs an LLM client against the environment. It expects these environment variables:
 
-## Baseline Scores
-Run `python scripts/eval_split.py` to print baseline metrics for your current code + policy.
-=======
-title: Meta123
-emoji: 🌍
-colorFrom: purple
-colorTo: blue
-sdk: docker
-pinned: false
----
+- `BASE_URL` for the local environment server, defaulting to `http://localhost:8000`.
+- `API_BASE_URL` for the model endpoint, defaulting to the Hugging Face router.
+- `API_KEY` or `HF_TOKEN` for authentication.
+- `MODEL_NAME` for the model to query.
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
->>>>>>> c453033df7ec6d4d68bf5ef21b9dac69152cb2b8
+Example:
+
+```bash
+python inference.py
+```
+
+## Training Example
+
+`train.py` is an experimental GRPO/LoRA training example. It uses additional packages that are not part of the default runtime requirements, including `unsloth`, `trl`, and `datasets`.
+
+## Session Storage
+
+Sessions are kept in memory by default. If `REDIS_URL` is set, the environment switches to Redis-backed session storage so episodes can survive multi-worker deployments.
+
+## Project Layout
+
+- `medical_triage_env/env.py` - FastAPI app and episode logic.
+- `medical_triage_env/tasks.py` - task corpus and validation models.
+- `medical_triage_env/graders.py` - reward and grading logic.
+- `medical_triage_env/info_revealer.py` - partial observability and vital drift.
+- `medical_triage_env/session.py` - session store implementation.
+- `server/app.py` - server entrypoint.
+- `inference.py` - baseline model client.
+- `scripts/` - dataset, eval, and publish utilities.
+
+## Notes
+
+- `openenv.yaml` defines the OpenEnv metadata for the benchmark.
+- Set `ENV=development` for local debugging if you want task identifiers exposed in development-only paths.
+- Keep secrets out of version control; use `.env` locally when needed.
