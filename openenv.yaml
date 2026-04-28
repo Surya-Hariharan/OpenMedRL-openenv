@@ -1,0 +1,48 @@
+name: medical-triage-env
+version: "0.1.0"
+description: >
+  Emergency department triage environment where LLM agents classify
+  patient urgency using the Emergency Severity Index (ESI 1-5).
+  Twenty procedurally varied cases across cardiovascular, neurological,
+  infectious, respiratory, and abdominal/metabolic categories.
+  Includes partial observability, stochastic deterioration, and
+  multi-component reward with anti-undertriage safety penalties.
+author: "your-team-name"
+tags:
+  - openenv
+  - medical
+  - triage
+  - clinical
+  - healthcare
+  - esi
+  - real-world
+tasks:
+  - id: classic-stemi
+    difficulty: easy
+    description: "Classic STEMI with shock physiology"
+  - id: meningococcal-meningitis
+    difficulty: medium
+    description: "Bacterial meningitis with non-blanching rash"
+  - id: masked-urosepsis
+    difficulty: hard
+    description: "Atypical elderly sepsis masked by beta-blockade and CKD"
+action_space:
+  type: structured_json
+  fields:
+    - {name: action_type, type: string, values: [classify, clarify]}
+    - {name: esi_level, type: integer, range: [1, 5]}
+    - {name: clarifying_question, type: string}
+    - {name: reasoning, type: string}
+    - {name: recommended_actions, type: "list[string]"}
+    - {name: confidence, type: float, range: [0.0, 1.0]}
+observation_space:
+  type: structured_json
+  fields:
+    - {name: task_id, type: string, description: "Opaque per-episode case reference"}
+    - {name: patient, type: PatientPresentation}
+    - {name: step_number, type: integer}
+    - {name: phase, type: string, values: [assessment, intervention, classification, completed]}
+    - {name: clarification_history, type: "list[string]"}
+    - {name: additional_info_revealed, type: boolean}
+    - {name: deterioration_signal, type: float}
+reward_range: [-1.0, 1.0]

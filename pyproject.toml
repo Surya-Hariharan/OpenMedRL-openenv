@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medical-triage-env"
+version = "0.1.0"
+description = "OpenEnv medical triage benchmark with deterministic grading"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.110.0",
+  "uvicorn>=0.29.0",
+  "pydantic>=2.0.0",
+  "openai>=1.0.0",
+  "openenv-core",
+  "python-dotenv",
+  "httpx>=0.27.0",
+  "structlog>=24.1.0",
+  "redis>=5.0.0",
+  "pyyaml>=6.0.1",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools.packages.find]
+include = ["medical_triage_env*", "server*"]
+
