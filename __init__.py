@@ -1,1 +1,1 @@
-"""Root package marker for OpenEnv structure validation."""
+"""Root package marker for the triagerl package."""

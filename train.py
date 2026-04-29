@@ -49,7 +49,7 @@ def triage_env_reward(prompts: List[str], completions: List[str], **kwargs) -> L
     
     # Normally we'd extract the task_id from the prompt if it's encoded there,
     # but for this example we'll sample a task to evaluate the completion.
-    from medical_triage_env.tasks import load_all_tasks
+    from triagerl.tasks.loader import load_all_tasks
     _, task_ids = load_all_tasks()
     
     for completion in completions:
@@ -107,7 +107,7 @@ def main():
 
     # Prepare a dummy dataset for the initial state of random tasks
     # (In a real setup, pre-generate these initial states)
-    from medical_triage_env.tasks import load_all_tasks
+    from triagerl.tasks.loader import load_all_tasks
     _, task_ids = load_all_tasks()
     
     prompts = []

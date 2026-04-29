@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "medical-triage-env"
+name = "triagerl"
 version = "0.1.0"
 description = "OpenEnv medical triage benchmark with deterministic grading"
 readme = "README.md"
@@ -25,5 +25,4 @@ dependencies = [
 server = "triagerl.api.server:main"
 
 [tool.setuptools.packages.find]
-include = ["medical_triage_env*", "triagerl*", "server*"]
-
+include = ["triagerl*", "medical_triage_env*", "server*"]

@@ -1,12 +1,12 @@
-name: medical-triage-env
+name: triagerl
 version: "0.1.0"
 description: >
-  Emergency department triage environment where LLM agents classify
-  patient urgency using the Emergency Severity Index (ESI 1-5).
-  Twenty procedurally varied cases across cardiovascular, neurological,
-  infectious, respiratory, and abdominal/metabolic categories.
-  Includes partial observability, stochastic deterioration, and
-  multi-component reward with anti-undertriage safety penalties.
+  TriagerL: an OpenEnv-style emergency department triage benchmark.
+  Agents classify patient urgency using the Emergency Severity Index (ESI 1-5).
+  The corpus contains procedurally varied clinical cases across multiple
+  categories (cardiovascular, neurological, infectious, respiratory,
+  abdominal/metabolic). Includes partial observability, stochastic
+  deterioration, and a safety-weighted, multi-component reward.
 author: "your-team-name"
 tags:
   - openenv

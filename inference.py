@@ -19,7 +19,7 @@ BASE_URL     = os.getenv("BASE_URL",     "http://localhost:8000")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 API_KEY      = os.getenv("HF_TOKEN") or os.getenv("API_KEY", "placeholder")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
-BENCHMARK    = "medical-triage-env"
+BENCHMARK    = "triagerl"
 MAX_STEPS    = 4
 
 SYSTEM_PROMPT = """You are an experienced emergency department triage nurse with 15 years
