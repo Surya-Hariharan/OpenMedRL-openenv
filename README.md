@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ### Run the API server
 
 ```bash
-uvicorn medical_triage_env.env:app --host 0.0.0.0 --port 8000
+uvicorn triagerl.api.server:app --host 0.0.0.0 --port 8000
 ```
 
 You can also use the project script defined in `pyproject.toml`:

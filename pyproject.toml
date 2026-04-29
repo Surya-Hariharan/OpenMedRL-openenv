@@ -22,8 +22,8 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+server = "triagerl.api.server:main"
 
 [tool.setuptools.packages.find]
-include = ["medical_triage_env*", "server*"]
+include = ["medical_triage_env*", "triagerl*", "server*"]
 

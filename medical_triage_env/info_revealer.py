@@ -5,9 +5,9 @@ from copy import deepcopy
 import random
 from typing import Any, Dict, List, Optional, Set
 
-from .constants import KEYWORD_TO_TRIGGER, VALID_TRIGGERS
-from .tasks import TaskConfig
-from .logs import get_logger
+from triagerl.core.constants import KEYWORD_TO_TRIGGER, VALID_TRIGGERS
+from triagerl.tasks.schema import TaskConfig
+from triagerl.logs.logger import get_logger
 
 logger = get_logger(__name__)
 

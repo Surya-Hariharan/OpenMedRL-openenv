@@ -6,21 +6,20 @@ import re
 from typing import List
 
 import httpx
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 
 from triagerl.core.models import TriageAction
 from triagerl.tasks.loader import get_task_list
 
 load_dotenv()
 
-# ── env vars with safe defaults ────────────────────────────────────────────────
-BASE_URL     = os.getenv("BASE_URL",     "http://localhost:8000")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-API_KEY      = os.getenv("HF_TOKEN") or os.getenv("API_KEY", "placeholder")
-MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
-BENCHMARK    = "medical-triage-env"
-MAX_STEPS    = 4
+API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY", "placeholder")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+BENCHMARK = "medical-triage-env"
+MAX_STEPS = 4
 
 SYSTEM_PROMPT = """You are an experienced emergency department triage nurse with 15 years
 of experience. You assess patients using the Emergency Severity Index:
@@ -66,8 +65,6 @@ If you need more information before classifying, use clarify once.
 For obvious emergencies, classify immediately."""
 
 
-# ── helpers ────────────────────────────────────────────────────────────────────
-
 def strip_code_fences(text: str) -> str:
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -111,7 +108,7 @@ def call_llm(client: OpenAI, observation: dict) -> TriageAction:
         model=MODEL_NAME,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": observation_to_prompt(observation)},
+            {"role": "user", "content": observation_to_prompt(observation)},
         ],
         temperature=0,
         max_tokens=600,
@@ -122,41 +119,32 @@ def call_llm(client: OpenAI, observation: dict) -> TriageAction:
     return parse_action(content)
 
 
-# ── episode runner ─────────────────────────────────────────────────────────────
-
-def run_episode(
-    client: OpenAI,
-    task_id: str,
-) -> tuple[bool, int, List[float]]:
-
+def run_episode(client: OpenAI, task_id: str) -> tuple[bool, int, List[float]]:
     rewards: List[float] = []
-    steps   = 0
+    steps = 0
     success = False
 
     try:
         with httpx.Client(base_url=BASE_URL, timeout=60.0) as http:
-
             reset_resp = http.post("/reset", json={"task_id": task_id})
             reset_resp.raise_for_status()
-            data        = reset_resp.json()
+            data = reset_resp.json()
             observation = data["observation"]
-            session_id  = data["info"]["session_id"]
+            session_id = data["info"]["session_id"]
             max_steps_for_episode = int(observation.get("max_steps", MAX_STEPS))
 
             while True:
                 error_str = "null"
-                action    = None
+                action = None
 
                 try:
                     action = call_llm(client, observation)
                 except Exception as exc:
                     error_str = str(exc).replace("\n", " ")[:200]
-                    action    = fallback_action()
+                    action = fallback_action()
 
                 action_payload = action.model_dump(exclude_none=True)
-                action_str     = json.dumps(
-                    action_payload, separators=(",", ":")
-                )
+                action_str = json.dumps(action_payload, separators=(",", ":"))
 
                 try:
                     step_resp = http.post(
@@ -170,14 +158,14 @@ def run_episode(
                     result = step_resp.json()
                 except Exception as exc:
                     error_str = str(exc).replace("\n", " ")[:200]
-                    result    = {
+                    result = {
                         "reward": 0.0,
-                        "done":   True,
+                        "done": True,
                         "observation": observation,
                     }
 
                 reward = round(float(result.get("reward", 0.0)), 2)
-                done   = bool(result.get("done", False))
+                done = bool(result.get("done", False))
 
                 rewards.append(reward)
                 steps += 1
@@ -204,13 +192,11 @@ def run_episode(
                 f"done=false error={error_str}",
                 flush=True,
             )
-            steps   = 1
+            steps = 1
             rewards = [0.0]
 
     return success, steps, rewards
 
-
-# ── main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
@@ -224,10 +210,16 @@ def main() -> None:
     except Exception as exc:
         print(f"[WARN] LLM ping failed: {exc}", flush=True)
 
-    task_ids = list(get_task_list())
+    task_ids: List[str] = []
+    for t in get_task_list():
+        if isinstance(t, str):
+            task_ids.append(t)
+        elif isinstance(t, dict):
+            task_ids.append(t.get("task_id") or t.get("id") or str(t))
+        else:
+            task_ids.append(str(t))
 
     for task_id in task_ids:
-
         print(
             f"[START] task={task_id} env={BENCHMARK} model={MODEL_NAME}",
             flush=True,
@@ -235,7 +227,7 @@ def main() -> None:
 
         success, steps, rewards = run_episode(client, task_id)
 
-        score       = rewards[-1] if rewards else 0.0
+        score = rewards[-1] if rewards else 0.0
         rewards_str = ",".join(f"{r:.2f}" for r in rewards)
 
         print(

@@ -6,7 +6,7 @@ import random
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from medical_triage_env.tasks import load_all_tasks
+from triagerl.tasks.loader import load_all_tasks
 
 
 def paraphrase(text: str, rng: random.Random) -> str:

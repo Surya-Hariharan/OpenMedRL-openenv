@@ -6,8 +6,8 @@ from unsloth import FastLanguageModel, PatchDPOTrainer
 from trl import GRPOConfig, GRPOTrainer
 from datasets import Dataset
 
-from medical_triage_env.env import MedicalTriageEnv
-from medical_triage_env.models import TriageAction
+from triagerl.env.triage_env import MedicalTriageEnv
+from triagerl.core.models import TriageAction
 
 PatchDPOTrainer()
 

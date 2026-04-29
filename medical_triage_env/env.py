@@ -10,20 +10,21 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
-from .graders import build_episode_metrics, compute_final_score
-from .info_revealer import InfoRevealer
-from .logs import get_logger, log_episode_metrics
-from .models import (
+from triagerl.reward.grader import build_episode_metrics, compute_final_score
+from triagerl.env.revealer import InfoRevealer
+from triagerl.logs.logger import get_logger, log_episode_metrics
+from triagerl.core.models import (
     ImagingFinding,
     LabResult,
     PatientPresentation,
     TriageAction,
     TriageObservation,
-    TriagePhase,
     VitalSigns,
 )
-from .session import get_session_store
-from .tasks import load_all_tasks, TaskConfig
+from triagerl.core.types import PhaseState as TriagePhase
+from triagerl.api.session.store import get_session_store
+from triagerl.tasks.loader import load_all_tasks
+from triagerl.tasks.schema import TaskConfig
 
 logger = get_logger(__name__)
 
@@ -129,9 +130,9 @@ class MedicalTriageEnv:
             return TriagePhase.COMPLETED
         if self._phase_name in ("disposition", "intervention"):
             # INTERVENTION is planned scaffolding with no implemented action type;
-            # surface it as CLASSIFICATION (the disposition-ready phase) to avoid
+            # surface it as DISPOSITION (the decision-ready phase) to avoid
             # confusing training scripts that branch on phase == ASSESSMENT.
-            return TriagePhase.CLASSIFICATION
+            return TriagePhase.DISPOSITION
         return TriagePhase.ASSESSMENT
 
     def _time_pressure_note(self, deterioration_signal: float) -> Optional[str]:

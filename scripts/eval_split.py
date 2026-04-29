@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from statistics import mean
 from typing import Dict, List, Optional, Tuple
 
-from medical_triage_env.env import MedicalTriageEnv
-from medical_triage_env.models import TriageAction, TriageObservation
-from medical_triage_env.tasks import load_all_tasks
+from triagerl.env.triage_env import MedicalTriageEnv
+from triagerl.core.models import TriageAction, TriageObservation
+from triagerl.tasks.loader import load_all_tasks
 
 
 @dataclass

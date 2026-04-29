@@ -1,7 +1,6 @@
 """Session lifecycle management for medical triage episodes."""
 from __future__ import annotations
 
-import asyncio
 import os
 import pickle
 import threading
@@ -138,21 +137,6 @@ class InMemorySessionStore:
             self._last_access.pop(session_id, None)
         for session_id in expired:
             logger.info("session_expired", session_id=session_id, ttl_seconds=self._ttl_seconds)
-
-    async def _ttl_sweep_loop(self) -> None:
-        interval_seconds = 300
-        logger.info("ttl_sweep_started", interval_seconds=interval_seconds)
-        while True:
-            try:
-                await asyncio.sleep(interval_seconds)
-                # Avoid blocking the event loop with a synchronous lock.
-                # Note: `start()` is a no-op for in-memory store; kept for backward compatibility.
-                await asyncio.to_thread(self._evict_expired_sessions_locked)
-            except asyncio.CancelledError:
-                logger.info("ttl_sweep_cancelled")
-                break
-            except Exception as exc:
-                logger.error("ttl_sweep_error", error=str(exc), error_type=type(exc).__name__)
 
     def start(self) -> None:
         # No background sweep: avoids duplicate/ghost tasks under reload.

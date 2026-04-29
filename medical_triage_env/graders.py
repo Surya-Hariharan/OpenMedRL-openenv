@@ -40,14 +40,14 @@ import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 
-from .logs import get_logger
-from .models import (
+from triagerl.logs.logger import get_logger
+from triagerl.core.models import (
     EpisodeMetrics,
     RewardBreakdown,
     TriageAction,
     TriageReward,
 )
-from .tasks import TaskConfig
+from triagerl.tasks.schema import TaskConfig
 
 logger = get_logger(__name__)
 
