@@ -1,16 +1,33 @@
-﻿
+﻿---
+# TriageRL Clinical Scenario Corpus
+# ==================================
+# 20 scenarios across 5 categories and 3 difficulty tiers.
+#
+# Categories : cardiovascular | neurological | infectious | respiratory | abdominal
+# Difficulty  : easy | medium | hard
+# ESI scale   : 1 (immediate) → 5 (non-urgent)
+#
+# Maintenance rules
+# -----------------
+# 1. Every trigger value must be one of: ask_history | check_vitals | examine_patient
+# 2. Do NOT use "clarify" as a trigger — it is a sentinel, not a named layer.
+# 3. vital_drift.per_step keys must match VitalSigns field names exactly.
+# 4. initial_vitals keys must match VitalSigns field names exactly.
+# 5. Run tests/tasks/test_loader.py after any edit to catch schema errors early.
+
 tasks:
 
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
   # CARDIOVASCULAR  (4 tasks)
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
 
   - id: classic-stemi
     category: cardiovascular
     difficulty: easy
     esi_correct: 1
     chief_complaint: "crushing chest pain radiating to left arm, sweating"
-    scenario: "Textbook STEMI: 58-year-old male, hypotension, diaphoresis, tachycardia."
+    scenario: >-
+      Textbook STEMI: 58-year-old male, hypotension, diaphoresis, tachycardia.
     initial_vitals:
       heart_rate: 112
       blood_pressure_systolic: 88
@@ -24,9 +41,19 @@ tasks:
       age: 58
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["crushing chest pain", "diaphoresis", "nausea", "left arm radiation", "shortness of breath"]
-      medical_history: ["hypertension", "type 2 diabetes", "smoker 20 pack-years"]
-      current_medications: ["metformin 500mg", "amlodipine 5mg"]
+      symptoms:
+        - crushing chest pain
+        - diaphoresis
+        - nausea
+        - left arm radiation
+        - shortness of breath
+      medical_history:
+        - hypertension
+        - type 2 diabetes
+        - smoker 20 pack-years
+      current_medications:
+        - metformin 500mg
+        - amlodipine 5mg
       allergies: []
       time_of_onset: "35 minutes ago, sudden onset"
     initial_labs: []
@@ -34,8 +61,14 @@ tasks:
     confounders:
       - "Patient reports 'indigestion' last week (red herring)"
     vital_drift:
-      per_step: {heart_rate: 8, blood_pressure_systolic: -6, oxygen_saturation: -1.5}
-      noise_sigma: {heart_rate: 3.0, blood_pressure_systolic: 4.0, oxygen_saturation: 0.5}
+      per_step:
+        heart_rate: 8
+        blood_pressure_systolic: -6
+        oxygen_saturation: -1.5
+      noise_sigma:
+        heart_rate: 3.0
+        blood_pressure_systolic: 4.0
+        oxygen_saturation: 0.5
       starts_at_step: 1
     expected_clarify_steps: 0
     key_clarify_actions: []
@@ -51,27 +84,35 @@ tasks:
       - "morphine for pain"
       - "call senior cardiologist"
     key_reasoning_keywords:
-      - "stemi"
-      - "myocardial infarction"
-      - "st elevation"
-      - "reperfusion"
-      - "pci"
-      - "cardiogenic shock"
-      - "troponin"
-      - "cardiac"
-      - "ischaemia"
+      - stemi
+      - myocardial infarction
+      - st elevation
+      - reperfusion
+      - pci
+      - cardiogenic shock
+      - troponin
+      - cardiac
+      - ischaemia
     expected_severity: critical
     max_steps: 2
-    undertriage_consequence: "Delayed PCI increases infarct size exponentially; cardiogenic shock and death within 30-60 minutes."
-    clinical_pearl: "Door-to-balloon time <90 minutes is the gold standard. Every minute of delay = ~1 myocyte lost."
-    why_difficulty: "Textbook STEMI presentation â€” hypotension, tachycardia, diaphoresis, crushing chest pain with radiation. Classify immediately."
+    undertriage_consequence: >-
+      Delayed PCI increases infarct size exponentially; cardiogenic shock and
+      death within 30-60 minutes.
+    clinical_pearl: >-
+      Door-to-balloon time <90 minutes is the gold standard.
+      Every minute of delay = ~1 myocyte lost.
+    why_difficulty: >-
+      Textbook STEMI presentation — hypotension, tachycardia, diaphoresis,
+      crushing chest pain with radiation. Classify immediately.
 
   - id: silent-nstemi-diabetic
     category: cardiovascular
     difficulty: medium
     esi_correct: 2
     chief_complaint: "feeling very tired and a bit short of breath since this morning"
-    scenario: "Diabetic neuropathy masking classic chest pain in NSTEMI; presents as fatigue only."
+    scenario: >-
+      Diabetic neuropathy masking classic chest pain in NSTEMI;
+      presents as fatigue only.
     initial_vitals:
       heart_rate: 98
       blood_pressure_systolic: 144
@@ -85,37 +126,62 @@ tasks:
       age: 67
       sex: female
       triage_arrival_mode: ambulatory
-      symptoms: ["fatigue", "mild dyspnoea", "nausea", "dizziness on exertion"]
-      medical_history: ["type 2 diabetes 20 years", "hypertension", "chronic kidney disease stage 2", "previous angina"]
-      current_medications: ["insulin glargine", "metformin 1g", "ramipril 5mg", "aspirin 75mg"]
+      symptoms:
+        - fatigue
+        - mild dyspnoea
+        - nausea
+        - dizziness on exertion
+      medical_history:
+        - type 2 diabetes 20 years
+        - hypertension
+        - chronic kidney disease stage 2
+        - previous angina
+      current_medications:
+        - insulin glargine
+        - metformin 1g
+        - ramipril 5mg
+        - aspirin 75mg
       allergies: []
       time_of_onset: "since this morning, ~6 hours"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Cardiac history detail"
         clinical_priority: 1
         data:
-          chest_tightness: "Patient admits 'a little tightness' if directly asked â€” diabetic neuropathy masks pain"
-          previous_angiogram: "Angiogram 2 years ago showed moderate LAD stenosis, deferred stenting"
-          symptom_progression: "Symptoms worsening over 6 hours, now short of breath at rest"
-      - trigger: "check_vitals"
+          chest_tightness: >-
+            Patient admits 'a little tightness' if directly asked —
+            diabetic neuropathy masks pain
+          previous_angiogram: >-
+            Angiogram 2 years ago showed moderate LAD stenosis, deferred stenting
+          symptom_progression: >-
+            Symptoms worsening over 6 hours, now short of breath at rest
+      - trigger: check_vitals
         reveal_label: "Repeat vitals"
         clinical_priority: 2
         data:
           repeat_bp: "162/94 on second reading"
-          ecg_rhythm: "12-lead ECG: ST depression 1.5mm V4-V6, T-wave inversion lateral leads"
+          ecg_rhythm: >-
+            12-lead ECG: ST depression 1.5mm V4-V6, T-wave inversion lateral leads
     confounders:
       - "No chest pain (diabetic autonomic neuropathy masks ischaemic pain)"
       - "Fatigue attributed to poor diabetic control or anaemia"
-      - "Looks 'well' â€” walking, talking, no acute distress"
+      - "Looks 'well' — walking, talking, no acute distress"
       - "Previous angiogram 2 years ago reassures incorrectly"
     vital_drift:
-      per_step: {heart_rate: 4, blood_pressure_systolic: -4, oxygen_saturation: -0.8}
-      noise_sigma: {heart_rate: 2.0, blood_pressure_systolic: 5.0, oxygen_saturation: 0.3}
+      per_step:
+        heart_rate: 4
+        blood_pressure_systolic: -4
+        oxygen_saturation: -0.8
+      noise_sigma:
+        heart_rate: 2.0
+        blood_pressure_systolic: 5.0
+        oxygen_saturation: 0.3
       starts_at_step: 2
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "check_vitals"]
+    key_clarify_actions:
+      - ask_history
+      - check_vitals
     expected_actions:
       - "12-lead ECG urgently"
       - "serial troponins (0h and 3h)"
@@ -126,27 +192,34 @@ tasks:
       - "urgent cardiology review"
       - "check renal function before contrast"
     key_reasoning_keywords:
-      - "nstemi"
-      - "silent ischaemia"
-      - "diabetic"
-      - "neuropathy"
-      - "st depression"
-      - "troponin"
-      - "acs"
-      - "lateral"
-      - "angina"
+      - nstemi
+      - silent ischaemia
+      - diabetic
+      - neuropathy
+      - st depression
+      - troponin
+      - acs
+      - lateral
+      - angina
     expected_severity: high
     max_steps: 4
-    undertriage_consequence: "Missed NSTEMI sent to waiting room â†’ arrhythmia, cardiac arrest in triage."
-    clinical_pearl: "Up to 30% of MI in diabetics are painless. Fatigue + dyspnoea in a diabetic patient = ACS until proven otherwise."
-    why_difficulty: "No chest pain, normal-ish vitals, looks well. Diabetic neuropathy is the key masking factor; direct questioning unlocks the diagnosis."
+    undertriage_consequence: >-
+      Missed NSTEMI sent to waiting room → arrhythmia, cardiac arrest in triage.
+    clinical_pearl: >-
+      Up to 30% of MI in diabetics are painless.
+      Fatigue + dyspnoea in a diabetic patient = ACS until proven otherwise.
+    why_difficulty: >-
+      No chest pain, normal-ish vitals, looks well. Diabetic neuropathy is the
+      key masking factor; direct questioning unlocks the diagnosis.
 
   - id: aortic-dissection-mimic
     category: cardiovascular
     difficulty: hard
     esi_correct: 1
     chief_complaint: "sudden severe back pain, 10/10, started one hour ago"
-    scenario: "Type A aortic dissection presenting as back pain; BP differential between arms is the diagnostic key."
+    scenario: >-
+      Type A aortic dissection presenting as back pain;
+      BP differential between arms is the diagnostic key.
     initial_vitals:
       heart_rate: 104
       blood_pressure_systolic: 148
@@ -160,36 +233,59 @@ tasks:
       age: 53
       sex: male
       triage_arrival_mode: ambulatory
-      symptoms: ["sudden severe back pain", "tearing quality", "radiates to chest", "diaphoresis", "anxiety"]
-      medical_history: ["hypertension poorly controlled", "Marfan syndrome features (tall, long arms, lens dislocation)"]
-      current_medications: ["amlodipine 10mg", "losartan 50mg"]
-      allergies: ["penicillin"]
+      symptoms:
+        - sudden severe back pain
+        - tearing quality
+        - radiates to chest
+        - diaphoresis
+        - anxiety
+      medical_history:
+        - hypertension poorly controlled
+        - "Marfan syndrome features (tall, long arms, lens dislocation)"
+      current_medications:
+        - amlodipine 10mg
+        - losartan 50mg
+      allergies:
+        - penicillin
       time_of_onset: "1 hour ago, sudden onset at rest"
     initial_labs: []
     hidden_info:
-      - trigger: "check_vitals"
+      - trigger: check_vitals
         reveal_label: "Bilateral BP measurement"
         clinical_priority: 1
         data:
-          bp_differential: "Right arm BP 148/92 â€” Left arm BP 96/58 â€” 52mmHg DIFFERENTIAL (pathognomonic)"
+          bp_differential: >-
+            Right arm BP 148/92 — Left arm BP 96/58 — 52mmHg DIFFERENTIAL
+            (pathognomonic)
           pulse_deficit: "Left radial pulse diminished compared to right"
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Character and radiation of pain"
         clinical_priority: 1
         data:
-          pain_character: "Patient describes 'tearing, ripping sensation' â€” moved from back to chest over minutes"
-          family_history: "Father died of 'heart problem' age 48 (possibly aortic event)"
+          pain_character: >-
+            Patient describes 'tearing, ripping sensation' — moved from back
+            to chest over minutes
+          family_history: >-
+            Father died of 'heart problem' age 48 (possibly aortic event)
     confounders:
-      - "Back pain very common â€” musculoskeletal initially considered"
+      - "Back pain very common — musculoskeletal initially considered"
       - "SBP 148 appears 'controlled hypertension', masks dissection"
       - "No obvious ST changes on ECG (coronary ostia not involved)"
       - "Tall habitus, not noted unless specifically checked"
     vital_drift:
-      per_step: {heart_rate: 6, blood_pressure_systolic: -8, oxygen_saturation: -1.0, gcs: -1}
-      noise_sigma: {heart_rate: 4.0, blood_pressure_systolic: 6.0, gcs: 0.0}
+      per_step:
+        heart_rate: 6
+        blood_pressure_systolic: -8
+        oxygen_saturation: -1.0
+        gcs: -1
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 6.0
+        gcs: 0.0
       starts_at_step: 1
     expected_clarify_steps: 1
-    key_clarify_actions: ["check_vitals"]
+    key_clarify_actions:
+      - check_vitals
     expected_actions:
       - "bilateral BP measurement immediately"
       - "IV access x2"
@@ -201,27 +297,37 @@ tasks:
       - "crossmatch 6 units"
       - "ICU bed"
     key_reasoning_keywords:
-      - "aortic dissection"
-      - "type a"
-      - "bp differential"
-      - "tearing"
-      - "marfan"
-      - "aortogram"
-      - "cardiothoracic"
-      - "thrombolytics contraindicated"
-      - "pulse deficit"
+      - aortic dissection
+      - type a
+      - bp differential
+      - tearing
+      - marfan
+      - aortogram
+      - cardiothoracic
+      - thrombolytics contraindicated
+      - pulse deficit
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Type A dissection has 1-2% mortality per hour untreated. Thrombolytics given for 'STEMI mimic' = fatal haemorrhage."
-    clinical_pearl: "Always measure bilateral BPs in tearing back/chest pain. A >20mmHg differential is dissection until proven otherwise. Thrombolytics are absolutely contraindicated."
-    why_difficulty: "Mimics musculoskeletal back pain and even STEMI. The bilateral BP differential is only found if specifically sought. Marfan features require clinical suspicion."
+    undertriage_consequence: >-
+      Type A dissection has 1-2% mortality per hour untreated.
+      Thrombolytics given for 'STEMI mimic' = fatal haemorrhage.
+    clinical_pearl: >-
+      Always measure bilateral BPs in tearing back/chest pain.
+      A >20mmHg differential is dissection until proven otherwise.
+      Thrombolytics are absolutely contraindicated.
+    why_difficulty: >-
+      Mimics musculoskeletal back pain and even STEMI. The bilateral BP
+      differential is only found if specifically sought. Marfan features
+      require clinical suspicion.
 
   - id: acute-heart-failure-copd
     category: cardiovascular
     difficulty: hard
     esi_correct: 2
     chief_complaint: "can't breathe, worse over 3 days, known COPD"
-    scenario: "Acute decompensated heart failure masquerading as COPD exacerbation in a patient with both."
+    scenario: >-
+      Acute decompensated heart failure masquerading as COPD exacerbation
+      in a patient with both.
     initial_vitals:
       heart_rate: 108
       blood_pressure_systolic: 168
@@ -235,37 +341,69 @@ tasks:
       age: 72
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["severe dyspnoea", "orthopnoea (sleeps upright)", "ankle swelling", "productive cough", "wheeze"]
-      medical_history: ["COPD GOLD III", "ischaemic cardiomyopathy EF 35%", "atrial fibrillation", "previous MI x2"]
-      current_medications: ["furosemide 40mg OD", "carvedilol 6.25mg BD", "salbutamol inhaler", "tiotropium", "apixaban 5mg BD", "spironolactone 25mg"]
+      symptoms:
+        - severe dyspnoea
+        - "orthopnoea (sleeps upright)"
+        - ankle swelling
+        - productive cough
+        - wheeze
+      medical_history:
+        - COPD GOLD III
+        - ischaemic cardiomyopathy EF 35%
+        - atrial fibrillation
+        - previous MI x2
+      current_medications:
+        - furosemide 40mg OD
+        - carvedilol 6.25mg BD
+        - salbutamol inhaler
+        - tiotropium
+        - apixaban 5mg BD
+        - spironolactone 25mg
       allergies: []
       time_of_onset: "3 days worsening, acute deterioration today"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Medication and weight history"
         clinical_priority: 1
         data:
-          weight_gain: "Patient gained 4kg in 5 days â€” was not weighing himself daily as instructed"
-          furosemide_adherence: "Stopped furosemide 1 week ago because 'it makes me wet myself'"
-          bnp_context: "Previous BNP 1200 when stable; suspect significantly elevated now"
-      - trigger: "examine_patient"
+          weight_gain: >-
+            Patient gained 4kg in 5 days — was not weighing himself daily
+            as instructed
+          furosemide_adherence: >-
+            Stopped furosemide 1 week ago because 'it makes me wet myself'
+          bnp_context: >-
+            Previous BNP 1200 when stable; suspect significantly elevated now
+      - trigger: examine_patient
         reveal_label: "Clinical examination findings"
         clinical_priority: 1
         data:
-          examination: "Fine bibasal crackles to mid-zones, JVP elevated 5cm, pitting oedema to knees, S3 gallop present"
-          chest_xray_suggestion: "CXR: bilateral infiltrates in bat-wing distribution, cardiomegaly, Kerley B lines"
+          examination: >-
+            Fine bibasal crackles to mid-zones, JVP elevated 5cm, pitting
+            oedema to knees, S3 gallop present
+          chest_xray_suggestion: >-
+            CXR: bilateral infiltrates in bat-wing distribution, cardiomegaly,
+            Kerley B lines
     confounders:
       - "Known COPD makes wheeze and dyspnoea 'expected'"
       - "Productive cough suggests infection/exacerbation"
       - "Beta-blocker (carvedilol) masks tachycardia from heart failure"
       - "Salbutamol for wheeze could worsen AF and heart failure"
     vital_drift:
-      per_step: {respiratory_rate: 3, oxygen_saturation: -2.0, gcs: -1, heart_rate: 4}
-      noise_sigma: {respiratory_rate: 1.0, oxygen_saturation: 0.5, heart_rate: 2.0}
+      per_step:
+        respiratory_rate: 3
+        oxygen_saturation: -2.0
+        gcs: -1
+        heart_rate: 4
+      noise_sigma:
+        respiratory_rate: 1.0
+        oxygen_saturation: 0.5
+        heart_rate: 2.0
       starts_at_step: 1
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "examine_patient"]
+    key_clarify_actions:
+      - ask_history
+      - examine_patient
     expected_actions:
       - "CPAP/NIV if SpO2 <90"
       - "IV furosemide 80mg stat"
@@ -278,32 +416,41 @@ tasks:
       - "strict fluid balance"
       - "daily weights"
     key_reasoning_keywords:
-      - "acute heart failure"
-      - "pulmonary oedema"
-      - "copd"
-      - "bnp"
-      - "furosemide"
-      - "carvedilol"
-      - "masked tachycardia"
-      - "bibasal crackles"
-      - "orthopnoea"
-      - "diuresis"
+      - acute heart failure
+      - pulmonary oedema
+      - copd
+      - bnp
+      - furosemide
+      - carvedilol
+      - masked tachycardia
+      - bibasal crackles
+      - orthopnoea
+      - diuresis
     expected_severity: high
     max_steps: 4
-    undertriage_consequence: "Treating as COPD exacerbation (nebulisers, steroids) worsens heart failure. Missing diuretic non-compliance delays correct treatment."
-    clinical_pearl: "In dual COPD/heart failure, BNP and weight gain history discriminate. Carvedilol masks tachycardia. Target SpO2 88-92%, not 100%."
-    why_difficulty: "Two overlapping diagnoses, each masking the other's features. Beta-blocker blunts tachycardia. The treatment for COPD (salbutamol, steroids) worsens heart failure."
+    undertriage_consequence: >-
+      Treating as COPD exacerbation (nebulisers, steroids) worsens heart
+      failure. Missing diuretic non-compliance delays correct treatment.
+    clinical_pearl: >-
+      In dual COPD/heart failure, BNP and weight gain history discriminate.
+      Carvedilol masks tachycardia. Target SpO2 88-92%, not 100%.
+    why_difficulty: >-
+      Two overlapping diagnoses, each masking the other's features.
+      Beta-blocker blunts tachycardia. The treatment for COPD
+      (salbutamol, steroids) worsens heart failure.
 
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
   # NEUROLOGICAL  (4 tasks)
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
 
   - id: meningococcal-meningitis
     category: neurological
     difficulty: medium
     esi_correct: 1
     chief_complaint: "worst headache of my life, fever, stiff neck"
-    scenario: "Bacterial meningitis with non-blanching petechial rash â€” classic presentation with a key diagnostic sign."
+    scenario: >-
+      Bacterial meningitis with non-blanching petechial rash — classic
+      presentation with a key diagnostic sign.
     initial_vitals:
       heart_rate: 118
       blood_pressure_systolic: 105
@@ -317,30 +464,51 @@ tasks:
       age: 19
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["thunderclap headache", "high fever", "neck stiffness", "photophobia", "vomiting", "non-blanching petechial rash on legs"]
-      medical_history: ["no significant past history"]
-      current_medications: ["combined oral contraceptive pill"]
+      symptoms:
+        - thunderclap headache
+        - high fever
+        - neck stiffness
+        - photophobia
+        - vomiting
+        - non-blanching petechial rash on legs
+      medical_history:
+        - no significant past history
+      current_medications:
+        - combined oral contraceptive pill
       allergies: []
       time_of_onset: "8 hours ago, rapidly worsening"
     initial_labs: []
     hidden_info:
-      - trigger: "examine_patient"
+      - trigger: examine_patient
         reveal_label: "Meningism signs"
         clinical_priority: 1
         data:
-          kernig_sign: "Kernig sign positive â€” pain and resistance on knee extension with hip flexed"
-          brudzinski_sign: "Brudzinski sign positive â€” involuntary knee flexion on neck flexion"
-          rash_detail: "Petechiae now spreading â€” some coalescing into purpura on thighs"
+          kernig_sign: >-
+            Kernig sign positive — pain and resistance on knee extension
+            with hip flexed
+          brudzinski_sign: >-
+            Brudzinski sign positive — involuntary knee flexion on neck
+            flexion
+          rash_detail: >-
+            Petechiae now spreading — some coalescing into purpura on thighs
     confounders:
-      - "On contraceptive pill â€” could suggest migraine with aura"
-      - "GCS 14 not critically low â€” might be reassuring"
-      - "Young healthy patient â€” clinicians less alert"
+      - "On contraceptive pill — could suggest migraine with aura"
+      - "GCS 14 not critically low — might be reassuring"
+      - "Young healthy patient — clinicians less alert"
     vital_drift:
-      per_step: {heart_rate: 5, gcs: -1, temperature: 0.3, blood_pressure_systolic: -5}
-      noise_sigma: {heart_rate: 2.0, temperature: 0.1, blood_pressure_systolic: 3.0}
+      per_step:
+        heart_rate: 5
+        gcs: -1
+        temperature: 0.3
+        blood_pressure_systolic: -5
+      noise_sigma:
+        heart_rate: 2.0
+        temperature: 0.1
+        blood_pressure_systolic: 3.0
       starts_at_step: 2
     expected_clarify_steps: 1
-    key_clarify_actions: ["examine_patient"]
+    key_clarify_actions:
+      - examine_patient
     expected_actions:
       - "immediate contact isolation"
       - "blood cultures x2 BEFORE antibiotics"
@@ -352,28 +520,36 @@ tasks:
       - "IV access and fluid resuscitation"
       - "neurology consult"
     key_reasoning_keywords:
-      - "meningitis"
-      - "meningococcal"
-      - "petechiae"
-      - "non-blanching"
-      - "kernig"
-      - "brudzinski"
-      - "ceftriaxone"
-      - "lumbar puncture"
-      - "bacterial"
-      - "septicaemia"
+      - meningitis
+      - meningococcal
+      - petechiae
+      - non-blanching
+      - kernig
+      - brudzinski
+      - ceftriaxone
+      - lumbar puncture
+      - bacterial
+      - septicaemia
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Delayed antibiotics: every hour without ceftriaxone doubles mortality. Non-blanching rash = meningococcal septicaemia until proven otherwise."
-    clinical_pearl: "Antibiotics BEFORE LP if any delay. Non-blanching rash + meningism = ESI 1, no exceptions. Don't wait for CT results to start antibiotics."
-    why_difficulty: "Classic but high-stakes. Confounder is the OCP (migraine mimicry) and borderline GCS. Physical exam sign (rash spread) is the discriminator."
+    undertriage_consequence: >-
+      Delayed antibiotics: every hour without ceftriaxone doubles mortality.
+      Non-blanching rash = meningococcal septicaemia until proven otherwise.
+    clinical_pearl: >-
+      Antibiotics BEFORE LP if any delay. Non-blanching rash + meningism =
+      ESI 1, no exceptions. Don't wait for CT results to start antibiotics.
+    why_difficulty: >-
+      Classic but high-stakes. Confounder is the OCP (migraine mimicry) and
+      borderline GCS. Physical exam sign (rash spread) is the discriminator.
 
   - id: stroke-lacunar-subtle
     category: neurological
     difficulty: medium
     esi_correct: 2
     chief_complaint: "my face is drooping and my speech is funny, started 45 minutes ago"
-    scenario: "Acute ischaemic stroke within thrombolysis window â€” FAST positive, subtle motor deficit."
+    scenario: >-
+      Acute ischaemic stroke within thrombolysis window —
+      FAST positive, subtle motor deficit.
     initial_vitals:
       heart_rate: 84
       blood_pressure_systolic: 178
@@ -387,30 +563,50 @@ tasks:
       age: 71
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["facial droop (right)", "slurred speech", "mild right arm weakness", "onset 45 minutes ago"]
-      medical_history: ["atrial fibrillation", "hypertension", "previous TIA 2 years ago"]
-      current_medications: ["apixaban 5mg BD", "ramipril 10mg", "atorvastatin 40mg"]
+      symptoms:
+        - "facial droop (right)"
+        - slurred speech
+        - mild right arm weakness
+        - onset 45 minutes ago
+      medical_history:
+        - atrial fibrillation
+        - hypertension
+        - previous TIA 2 years ago
+      current_medications:
+        - apixaban 5mg BD
+        - ramipril 10mg
+        - atorvastatin 40mg
       allergies: []
       time_of_onset: "45 minutes ago, witnessed by wife"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Anticoagulation status"
         clinical_priority: 1
         data:
-          last_apixaban_dose: "Last apixaban taken 14 hours ago â€” needs anti-Xa level before thrombolysis decision"
-          nihss_detail: "NIHSS score 6: facial palsy 2, arm drift 2, dysarthria 1, gaze deviation 1"
-          last_known_well: "Wife confirms last seen normal 44 minutes ago â€” within 4.5hr window"
+          last_apixaban_dose: >-
+            Last apixaban taken 14 hours ago — needs anti-Xa level before
+            thrombolysis decision
+          nihss_detail: >-
+            NIHSS score 6: facial palsy 2, arm drift 2, dysarthria 1,
+            gaze deviation 1
+          last_known_well: >-
+            Wife confirms last seen normal 44 minutes ago — within 4.5hr window
     confounders:
-      - "On apixaban â€” team may assume thrombolysis contraindicated without checking level"
-      - "Previous TIA â€” symptoms might be 'another TIA'"
-      - "BP 178/98 â€” team distracted by hypertension management"
+      - "On apixaban — team may assume thrombolysis contraindicated without checking level"
+      - "Previous TIA — symptoms might be 'another TIA'"
+      - "BP 178/98 — team distracted by hypertension management"
     vital_drift:
-      per_step: {gcs: -1, blood_pressure_systolic: 4}
-      noise_sigma: {gcs: 0.0, blood_pressure_systolic: 3.0}
+      per_step:
+        gcs: -1
+        blood_pressure_systolic: 4
+      noise_sigma:
+        gcs: 0.0
+        blood_pressure_systolic: 3.0
       starts_at_step: 2
     expected_clarify_steps: 1
-    key_clarify_actions: ["ask_history"]
+    key_clarify_actions:
+      - ask_history
     expected_actions:
       - "immediate stroke team activation (code stroke)"
       - "CT brain without contrast STAT"
@@ -423,28 +619,39 @@ tasks:
       - "alteplase if eligible and anti-Xa low"
       - "thrombectomy evaluation"
     key_reasoning_keywords:
-      - "stroke"
-      - "tpa"
-      - "alteplase"
-      - "thrombolysis"
-      - "nihss"
-      - "fast"
-      - "ischaemic"
-      - "atrial fibrillation"
-      - "thrombectomy"
-      - "anti-xa"
+      - stroke
+      - tpa
+      - alteplase
+      - thrombolysis
+      - nihss
+      - fast
+      - ischaemic
+      - atrial fibrillation
+      - thrombectomy
+      - anti-xa
     expected_severity: high
     max_steps: 3
-    undertriage_consequence: "Window closes: every 30 minutes costs ~4.5 million neurons. Missing anti-Xa check leads to either missed thrombolysis or dangerous bleeding."
-    clinical_pearl: "Code stroke immediately on FAST positive. Anti-Xa level determines thrombolysis eligibility on apixaban. Time IS brain."
-    why_difficulty: "Anticoagulation status creates a genuine diagnostic dilemma. Previous TIA normalises symptoms. BP management instinct may delay thrombolysis."
+    undertriage_consequence: >-
+      Window closes: every 30 minutes costs ~4.5 million neurons.
+      Missing anti-Xa check leads to either missed thrombolysis or
+      dangerous bleeding.
+    clinical_pearl: >-
+      Code stroke immediately on FAST positive.
+      Anti-Xa level determines thrombolysis eligibility on apixaban.
+      Time IS brain.
+    why_difficulty: >-
+      Anticoagulation status creates a genuine diagnostic dilemma.
+      Previous TIA normalises symptoms.
+      BP management instinct may delay thrombolysis.
 
   - id: subarachnoid-haemorrhage
     category: neurological
     difficulty: medium
     esi_correct: 1
     chief_complaint: "sudden thunderclap headache, worst in my life, at the gym"
-    scenario: "Subarachnoid haemorrhage â€” sentinel headache during exertion, normal initial neuro exam."
+    scenario: >-
+      Subarachnoid haemorrhage — sentinel headache during exertion,
+      normal initial neuro exam.
     initial_vitals:
       heart_rate: 96
       blood_pressure_systolic: 192
@@ -458,31 +665,53 @@ tasks:
       age: 46
       sex: female
       triage_arrival_mode: ambulatory
-      symptoms: ["sudden thunderclap headache", "nausea and vomiting", "neck stiffness", "photophobia", "onset during exercise"]
-      medical_history: ["migraines", "polycystic kidney disease"]
-      current_medications: ["sumatriptan PRN", "combined oral contraceptive pill"]
+      symptoms:
+        - sudden thunderclap headache
+        - nausea and vomiting
+        - neck stiffness
+        - photophobia
+        - onset during exercise
+      medical_history:
+        - migraines
+        - polycystic kidney disease
+      current_medications:
+        - sumatriptan PRN
+        - combined oral contraceptive pill
       allergies: []
       time_of_onset: "2 hours ago during weightlifting"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Headache character"
         clinical_priority: 1
         data:
-          headache_character: "Unlike any previous migraine â€” instantaneous maximal intensity, 'like being hit with a bat'"
-          previous_episodes: "No similar episode in past. Previous migraines are gradual onset over 30 minutes"
-          family_history: "Sister has polycystic kidney disease â€” associated with intracranial aneurysms"
+          headache_character: >-
+            Unlike any previous migraine — instantaneous maximal intensity,
+            'like being hit with a bat'
+          previous_episodes: >-
+            No similar episode in past. Previous migraines are gradual onset
+            over 30 minutes
+          family_history: >-
+            Sister has polycystic kidney disease — associated with
+            intracranial aneurysms
     confounders:
       - "History of migraines makes headache 'expected'"
-      - "Normal GCS 15 â€” neurology appears intact"
+      - "Normal GCS 15 — neurology appears intact"
       - "Normal oxygen, HR only mildly elevated"
       - "Polycystic kidney disease link to aneurysm not widely known"
     vital_drift:
-      per_step: {gcs: -1, blood_pressure_systolic: 8, heart_rate: 6}
-      noise_sigma: {gcs: 0.0, blood_pressure_systolic: 5.0, heart_rate: 2.0}
+      per_step:
+        gcs: -1
+        blood_pressure_systolic: 8
+        heart_rate: 6
+      noise_sigma:
+        gcs: 0.0
+        blood_pressure_systolic: 5.0
+        heart_rate: 2.0
       starts_at_step: 2
     expected_clarify_steps: 1
-    key_clarify_actions: ["ask_history"]
+    key_clarify_actions:
+      - ask_history
     expected_actions:
       - "CT head without contrast STAT"
       - "LP at 12 hours if CT negative (xanthochromia)"
@@ -493,27 +722,35 @@ tasks:
       - "strict bed rest"
       - "analgesia (avoid NSAIDs)"
     key_reasoning_keywords:
-      - "subarachnoid"
-      - "sah"
-      - "thunderclap"
-      - "aneurysm"
-      - "xanthochromia"
-      - "nimodipine"
-      - "lumbar puncture"
-      - "polycystic kidney"
-      - "sentinel headache"
+      - subarachnoid
+      - sah
+      - thunderclap
+      - aneurysm
+      - xanthochromia
+      - nimodipine
+      - lumbar puncture
+      - polycystic kidney
+      - sentinel headache
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Re-bleed within 24 hours has 70% mortality. Sent home as 'migraine' â€” dies from re-bleed."
-    clinical_pearl: "Thunderclap headache = SAH until CT + LP proven otherwise. Migraines build over minutes; SAH is instantaneous maximal intensity."
-    why_difficulty: "Migraine history normalises headache. Normal neuro exam and GCS reassuring. PKD-aneurysm link requires broad clinical knowledge."
+    undertriage_consequence: >-
+      Re-bleed within 24 hours has 70% mortality.
+      Sent home as 'migraine' — dies from re-bleed.
+    clinical_pearl: >-
+      Thunderclap headache = SAH until CT + LP proven otherwise.
+      Migraines build over minutes; SAH is instantaneous maximal intensity.
+    why_difficulty: >-
+      Migraine history normalises headache. Normal neuro exam and GCS
+      reassuring. PKD-aneurysm link requires broad clinical knowledge.
 
   - id: subdural-elderly-fall
     category: neurological
     difficulty: hard
     esi_correct: 2
     chief_complaint: "found on the floor by carer, confused, thinks she fell 10 days ago"
-    scenario: "Chronic subdural haematoma with acute-on-chronic expansion in a warfarinised elderly patient."
+    scenario: >-
+      Chronic subdural haematoma with acute-on-chronic expansion in a
+      warfarinised elderly patient.
     initial_vitals:
       heart_rate: 78
       blood_pressure_systolic: 152
@@ -527,38 +764,64 @@ tasks:
       age: 84
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["confusion", "unsteady gait", "left-sided weakness (subtle)", "headache for 1 week"]
-      medical_history: ["atrial fibrillation", "hypertension", "previous ischaemic stroke", "osteoporosis"]
-      current_medications: ["warfarin 5mg", "amlodipine 5mg", "donepezil 5mg", "lansoprazole 15mg"]
+      symptoms:
+        - confusion
+        - unsteady gait
+        - "left-sided weakness (subtle)"
+        - headache for 1 week
+      medical_history:
+        - atrial fibrillation
+        - hypertension
+        - previous ischaemic stroke
+        - osteoporosis
+      current_medications:
+        - warfarin 5mg
+        - amlodipine 5mg
+        - donepezil 5mg
+        - lansoprazole 15mg
       allergies: []
       time_of_onset: "found confused this morning; history of fall 10 days ago"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Fall history and anticoagulation"
         clinical_priority: 1
         data:
-          inr_history: "Last INR 4.2 two weeks ago â€” warfarin dose was increased. No recent check."
-          fall_detail: "Carer reports patient 'knocked head on bathroom floor' 10 days ago â€” no immediate symptoms"
-          cognitive_baseline: "Donepezil for mild dementia â€” 'much more confused than usual' per carer"
-      - trigger: "check_vitals"
+          inr_history: >-
+            Last INR 4.2 two weeks ago — warfarin dose was increased.
+            No recent check.
+          fall_detail: >-
+            Carer reports patient 'knocked head on bathroom floor' 10 days
+            ago — no immediate symptoms
+          cognitive_baseline: >-
+            Donepezil for mild dementia — 'much more confused than usual'
+            per carer
+      - trigger: check_vitals
         reveal_label: "Neurological assessment"
         clinical_priority: 1
         data:
-          focal_neurology: "Subtle left arm pronator drift, upgoing plantar on left â€” focal upper motor neurone signs"
-          inr_result: "Urgent INR: 4.8 â€” supratherapeutic anticoagulation"
+          focal_neurology: >-
+            Subtle left arm pronator drift, upgoing plantar on left —
+            focal upper motor neurone signs
+          inr_result: "Urgent INR: 4.8 — supratherapeutic anticoagulation"
     confounders:
       - "Dementia makes baseline confusion expected"
       - "Slow onset headache missed by carer"
-      - "Warfarin for AF â€” team focuses on stroke risk, not bleeding"
+      - "Warfarin for AF — team focuses on stroke risk, not bleeding"
       - "Donepezil can cause dizziness and falls (side effect attributed to drug)"
       - "10-day delay masks temporal link to fall"
     vital_drift:
-      per_step: {gcs: -1, blood_pressure_systolic: 6}
-      noise_sigma: {gcs: 0.0, blood_pressure_systolic: 4.0}
+      per_step:
+        gcs: -1
+        blood_pressure_systolic: 6
+      noise_sigma:
+        gcs: 0.0
+        blood_pressure_systolic: 4.0
       starts_at_step: 2
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "check_vitals"]
+    key_clarify_actions:
+      - ask_history
+      - check_vitals
     expected_actions:
       - "CT head without contrast STAT"
       - "urgent INR"
@@ -569,32 +832,42 @@ tasks:
       - "discuss anticoagulation reversal vs thrombosis risk with haematology"
       - "IV access"
     key_reasoning_keywords:
-      - "subdural haematoma"
-      - "csdh"
-      - "warfarin"
-      - "inr"
-      - "reversal"
-      - "pcc"
-      - "vitamin k"
-      - "anticoagulated"
-      - "chronic subdural"
-      - "fall"
+      - subdural haematoma
+      - csdh
+      - warfarin
+      - inr
+      - reversal
+      - pcc
+      - vitamin k
+      - anticoagulated
+      - chronic subdural
+      - fall
     expected_severity: high
     max_steps: 5
-    undertriage_consequence: "Supratherapeutic INR + expanding subdural = herniation. Inappropriate warfarin reversal (FFP only) is too slow and insufficient."
-    clinical_pearl: "Any head injury + warfarin = CT head regardless of initial GCS. PCC is superior to FFP for rapid INR reversal. Donepezil does not mask subdural."
-    why_difficulty: "Temporal gap between fall and presentation, dementia baseline, warfarin-AF tension, and supratherapeutic INR all compound. Focal signs are subtle."
+    undertriage_consequence: >-
+      Supratherapeutic INR + expanding subdural = herniation.
+      Inappropriate warfarin reversal (FFP only) is too slow and insufficient.
+    clinical_pearl: >-
+      Any head injury + warfarin = CT head regardless of initial GCS.
+      PCC is superior to FFP for rapid INR reversal.
+      Donepezil does not mask subdural.
+    why_difficulty: >-
+      Temporal gap between fall and presentation, dementia baseline,
+      warfarin-AF tension, and supratherapeutic INR all compound.
+      Focal signs are subtle.
 
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
   # INFECTIOUS / SEPSIS  (4 tasks)
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
 
   - id: masked-urosepsis
     category: infectious
     difficulty: hard
     esi_correct: 2
     chief_complaint: "family says she has been confused and just not herself for 2 days"
-    scenario: "Urosepsis masked by beta-blockade, CKD, and advanced age in an anticoagulated patient."
+    scenario: >-
+      Urosepsis masked by beta-blockade, CKD, and advanced age in an
+      anticoagulated patient.
     initial_vitals:
       heart_rate: 88
       blood_pressure_systolic: 118
@@ -608,80 +881,125 @@ tasks:
       age: 82
       sex: female
       triage_arrival_mode: ambulatory
-      symptoms: ["acute confusion", "general malaise", "reduced oral intake", "decreased mobility", "mild abdominal discomfort"]
-      medical_history: ["atrial fibrillation", "chronic kidney disease stage 3", "type 2 diabetes", "recurrent UTIs", "osteoarthritis"]
-      current_medications: ["warfarin 3mg", "metformin 500mg", "bisoprolol 5mg", "furosemide 40mg", "paracetamol PRN"]
-      allergies: ["trimethoprim (rash)"]
+      symptoms:
+        - acute confusion
+        - general malaise
+        - reduced oral intake
+        - decreased mobility
+        - mild abdominal discomfort
+      medical_history:
+        - atrial fibrillation
+        - chronic kidney disease stage 3
+        - type 2 diabetes
+        - recurrent UTIs
+        - osteoarthritis
+      current_medications:
+        - warfarin 3mg
+        - metformin 500mg
+        - bisoprolol 5mg
+        - furosemide 40mg
+        - paracetamol PRN
+      allergies:
+        - "trimethoprim (rash)"
       time_of_onset: "2 days gradual decline, acutely worse today"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Urinary symptoms, home observations and functional baseline"
         clinical_priority: 1
         data:
           urinary_symptoms: "Urine dark, cloudy, malodorous per family"
           fever_history: "Temperature 38.9C at home last night per son"
-          urine_output: "Has not passed urine since this morning â€” oliguria"
+          urine_output: "Has not passed urine since this morning — oliguria"
           medication_adherence: "Last INR check 3 weeks ago; metformin continued throughout"
-          baseline_cognition: "Normally independent, sharp; current confusion is stark change from baseline"
-          fluid_intake: "Barely eaten or drunk for 2 days â€” significant dehydration on top of sepsis"
-      - trigger: "examine_patient"
+          baseline_cognition: >-
+            Normally independent, sharp; current confusion is stark change
+            from baseline
+          fluid_intake: >-
+            Barely eaten or drunk for 2 days — significant dehydration on
+            top of sepsis
+      - trigger: examine_patient
         reveal_label: "Sepsis examination findings"
         clinical_priority: 1
         data:
-          skin_findings: "Skin mottled over knees; capillary refill 4 seconds centrally"
-          abdomen: "Suprapubic tenderness on palpation; no guarding or rigidity"
+          skin_findings: >-
+            Skin mottled over knees; capillary refill 4 seconds centrally
+          abdomen: >-
+            Suprapubic tenderness on palpation; no guarding or rigidity
           hydration: "Dry mucous membranes, sunken eyes, skin turgor reduced"
-          urine_catheter: "Urinary catheter inserted: 20mL dark amber urine over 2 hours (severe oliguria)"
+          urine_catheter: >-
+            Urinary catheter inserted: 20mL dark amber urine over 2 hours
+            (severe oliguria)
     confounders:
       - "Normal temperature due to age and bisoprolol masking fever and tachycardia"
       - "Confusion attributed to dementia progression"
       - "Mild symptoms don't suggest emergency"
-      - "Bisoprolol blunts tachycardia â€” HR 88 looks 'normal'"
-      - "Metformin contraindicated in AKI â€” often not stopped"
+      - "Bisoprolol blunts tachycardia — HR 88 looks 'normal'"
+      - "Metformin contraindicated in AKI — often not stopped"
     vital_drift:
-      per_step: {heart_rate: 5, respiratory_rate: 2, oxygen_saturation: -1.0, temperature: 0.3, gcs: -1}
-      noise_sigma: {heart_rate: 2.0, respiratory_rate: 0.5, oxygen_saturation: 0.3, temperature: 0.1}
+      per_step:
+        heart_rate: 5
+        respiratory_rate: 2
+        oxygen_saturation: -1.0
+        temperature: 0.3
+        gcs: -1
+      noise_sigma:
+        heart_rate: 2.0
+        respiratory_rate: 0.5
+        oxygen_saturation: 0.3
+        temperature: 0.1
       starts_at_step: 2
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "examine_patient"]
+    key_clarify_actions:
+      - ask_history
+      - examine_patient
     expected_actions:
       - "sepsis 6 bundle within 1 hour"
       - "blood cultures x2"
       - "urine dipstick and MC&S"
       - "serum lactate"
-      - "IV fluid challenge (cautious â€” CKD)"
+      - "IV fluid challenge (cautious — CKD)"
       - "STOP metformin immediately"
       - "urgent INR check"
       - "renal function and eGFR"
-      - "IV co-amoxiclav (avoid trimethoprim â€” allergy)"
+      - "IV co-amoxiclav (avoid trimethoprim — allergy)"
       - "geriatrics consult"
     key_reasoning_keywords:
-      - "sepsis"
-      - "urosepsis"
-      - "uti"
-      - "bisoprolol"
-      - "masked tachycardia"
-      - "beta blocker"
-      - "lactate"
-      - "metformin"
-      - "aki"
-      - "oliguria"
-      - "warfarin"
-      - "inr"
-      - "atypical presentation"
+      - sepsis
+      - urosepsis
+      - uti
+      - bisoprolol
+      - masked tachycardia
+      - beta blocker
+      - lactate
+      - metformin
+      - aki
+      - oliguria
+      - warfarin
+      - inr
+      - atypical presentation
     expected_severity: high
     max_steps: 4
-    undertriage_consequence: "Metformin in AKI causes fatal lactic acidosis. Missed sepsis â†’ septic shock within hours. INR unchecked in anticoagulated septic patient."
-    clinical_pearl: "In elderly patients, bisoprolol masks the tachycardia of sepsis. Confusion is the presentation. Always stop metformin in suspected AKI/sepsis."
-    why_difficulty: "Multiple simultaneous masking factors. Bisoprolol, age, CKD, and baseline dementia all conspire to normalise a critical presentation."
+    undertriage_consequence: >-
+      Metformin in AKI causes fatal lactic acidosis.
+      Missed sepsis → septic shock within hours.
+      INR unchecked in anticoagulated septic patient.
+    clinical_pearl: >-
+      In elderly patients, bisoprolol masks the tachycardia of sepsis.
+      Confusion is the presentation.
+      Always stop metformin in suspected AKI/sepsis.
+    why_difficulty: >-
+      Multiple simultaneous masking factors. Bisoprolol, age, CKD, and
+      baseline dementia all conspire to normalise a critical presentation.
 
   - id: necrotising-fasciitis
     category: infectious
     difficulty: hard
     esi_correct: 1
     chief_complaint: "my leg has been sore for 2 days, now it looks dark and I feel terrible"
-    scenario: "Necrotising fasciitis in a diabetic patient â€” skin findings disguise deep tissue destruction."
+    scenario: >-
+      Necrotising fasciitis in a diabetic patient — skin findings disguise
+      deep tissue destruction.
     initial_vitals:
       heart_rate: 122
       blood_pressure_systolic: 98
@@ -695,39 +1013,67 @@ tasks:
       age: 54
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["leg pain disproportionate to appearance", "erythema spreading rapidly", "blistering", "skin discolouration (grey/dark)", "systemic toxicity", "high fever"]
-      medical_history: ["type 2 diabetes HbA1c 98", "morbid obesity BMI 42", "peripheral vascular disease"]
-      current_medications: ["insulin mixture", "metformin 1g BD", "atorvastatin 40mg", "aspirin 75mg"]
-      allergies: ["penicillin â€” anaphylaxis"]
+      symptoms:
+        - leg pain disproportionate to appearance
+        - erythema spreading rapidly
+        - blistering
+        - "skin discolouration (grey/dark)"
+        - systemic toxicity
+        - high fever
+      medical_history:
+        - type 2 diabetes HbA1c 98
+        - morbid obesity BMI 42
+        - peripheral vascular disease
+      current_medications:
+        - insulin mixture
+        - metformin 1g BD
+        - atorvastatin 40mg
+        - aspirin 75mg
+      allergies:
+        - "penicillin — anaphylaxis"
       time_of_onset: "2 days pain, 12 hours systemic deterioration"
     initial_labs: []
     hidden_info:
-      - trigger: "examine_patient"
+      - trigger: examine_patient
         reveal_label: "Wound examination"
         clinical_priority: 1
         data:
-          wound_detail: "Skin crepitus on palpation (gas in soft tissues). Central necrosis with surrounding cellulitis. Foul-smelling thin grey discharge."
-          pain_incongruence: "Profound pain initially, now paradoxically reduced (nerve destruction â€” a late and ominous sign)"
-      - trigger: "ask_history"
+          wound_detail: >-
+            Skin crepitus on palpation (gas in soft tissues). Central necrosis
+            with surrounding cellulitis. Foul-smelling thin grey discharge.
+          pain_incongruence: >-
+            Profound pain initially, now paradoxically reduced (nerve
+            destruction — a late and ominous sign)
+      - trigger: ask_history
         reveal_label: "Onset and risk factors"
         clinical_priority: 2
         data:
-          portal_of_entry: "Minor leg graze 5 days ago from gardening â€” dismissed as trivial"
+          portal_of_entry: >-
+            Minor leg graze 5 days ago from gardening — dismissed as trivial
           glucose_history: "Blood glucose at home 28 mmol/L this morning"
     confounders:
       - "Skin looks 'just like cellulitis' initially"
-      - "Penicillin anaphylaxis â€” wrong antibiotics given, or team hesitates on treatment"
+      - "Penicillin anaphylaxis — wrong antibiotics given, or team hesitates on treatment"
       - "Painful initially then paradoxically 'better' (nerve destruction) falsely reassures"
       - "Diabetes and PVD normalise skin changes"
     vital_drift:
-      per_step: {heart_rate: 8, blood_pressure_systolic: -8, oxygen_saturation: -1.5, gcs: -1, temperature: 0.4}
-      noise_sigma: {heart_rate: 3.0, blood_pressure_systolic: 5.0, oxygen_saturation: 0.5}
+      per_step:
+        heart_rate: 8
+        blood_pressure_systolic: -8
+        oxygen_saturation: -1.5
+        gcs: -1
+        temperature: 0.4
+      noise_sigma:
+        heart_rate: 3.0
+        blood_pressure_systolic: 5.0
+        oxygen_saturation: 0.5
       starts_at_step: 1
     expected_clarify_steps: 1
-    key_clarify_actions: ["examine_patient"]
+    key_clarify_actions:
+      - examine_patient
     expected_actions:
       - "immediate surgical consult for emergency debridement"
-      - "IV clindamycin + meropenem + vancomycin (penicillin allergy â€” use alternatives)"
+      - "IV clindamycin + meropenem + vancomycin (penicillin allergy — use alternatives)"
       - "IV fluid resuscitation"
       - "urgent CT soft tissue (gas tracking)"
       - "ICU/HDU admission"
@@ -736,28 +1082,39 @@ tasks:
       - "aggressive insulin sliding scale"
       - "hyperbaric oxygen if available"
     key_reasoning_keywords:
-      - "necrotising fasciitis"
-      - "nf"
-      - "flesh eating"
-      - "gas gangrene"
-      - "crepitus"
-      - "surgical emergency"
-      - "debridement"
-      - "diabetic"
-      - "pain disproportionate"
-      - "clindamycin"
+      - necrotising fasciitis
+      - nf
+      - flesh eating
+      - gas gangrene
+      - crepitus
+      - surgical emergency
+      - debridement
+      - diabetic
+      - pain disproportionate
+      - clindamycin
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Every hour without debridement, NF advances at 1cm/hour. Mortality without surgery >70%. Wrong antibiotics (penicillin) miss polymicrobial cover."
-    clinical_pearl: "Pain disproportionate to skin appearance + systemic toxicity in a diabetic = necrotising fasciitis until surgery proves otherwise. The Finger Test (Surgical): probe under skin â€” if fascial planes separate without resistance, book theatre immediately."
-    why_difficulty: "Looks like cellulitis. Penicillin allergy creates antibiotic paralysis. Pain reduction is wrongly reassuring. Crepitus and gas tracking require active physical examination."
+    undertriage_consequence: >-
+      Every hour without debridement, NF advances at 1cm/hour.
+      Mortality without surgery >70%.
+      Wrong antibiotics (penicillin) miss polymicrobial cover.
+    clinical_pearl: >-
+      Pain disproportionate to skin appearance + systemic toxicity in a
+      diabetic = necrotising fasciitis until surgery proves otherwise.
+      The Finger Test (Surgical): probe under skin — if fascial planes
+      separate without resistance, book theatre immediately.
+    why_difficulty: >-
+      Looks like cellulitis. Penicillin allergy creates antibiotic paralysis.
+      Pain reduction is wrongly reassuring.
+      Crepitus and gas tracking require active physical examination.
 
   - id: pneumocystis-hiv
     category: infectious
     difficulty: hard
     esi_correct: 2
     chief_complaint: "getting more and more breathless over 3 weeks, dry cough"
-    scenario: "PCP pneumonia as AIDS-defining illness in a patient with undiagnosed HIV."
+    scenario: >-
+      PCP pneumonia as AIDS-defining illness in a patient with undiagnosed HIV.
     initial_vitals:
       heart_rate: 114
       blood_pressure_systolic: 118
@@ -771,41 +1128,64 @@ tasks:
       age: 34
       sex: male
       triage_arrival_mode: ambulatory
-      symptoms: ["progressive dyspnoea over 3 weeks", "dry non-productive cough", "night sweats", "weight loss 8kg over 2 months", "fatigue"]
-      medical_history: ["no known medical history", "previous oral candidiasis treated by GP 3 months ago"]
+      symptoms:
+        - progressive dyspnoea over 3 weeks
+        - dry non-productive cough
+        - night sweats
+        - weight loss 8kg over 2 months
+        - fatigue
+      medical_history:
+        - no known medical history
+        - oral candidiasis treated by GP 3 months ago
       current_medications: []
       allergies: []
       time_of_onset: "3 weeks progressively worsening"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Social history and risk factors"
         clinical_priority: 1
         data:
-          sexual_history: "Men who have sex with men â€” never tested for HIV. Multiple partners."
-          oral_candidiasis: "Oral candidiasis 3 months ago â€” unrecognised as HIV indicator condition"
+          sexual_history: >-
+            Men who have sex with men — never tested for HIV.
+            Multiple partners.
+          oral_candidiasis: >-
+            Oral candidiasis 3 months ago — unrecognised as HIV indicator
+            condition
           travel: "No recent travel. Night sweats worse than ever."
-      - trigger: "examine_patient"
+      - trigger: examine_patient
         reveal_label: "Examination and desaturation on exertion"
         clinical_priority: 1
         data:
-          desaturation: "SpO2 drops to 78% on walking 10 metres â€” exercise desaturation is characteristic of PCP"
-          chest_exam: "Bilateral fine crackles. No consolidation dullness. CXR: bilateral perihilar ground-glass infiltrates"
+          desaturation: >-
+            SpO2 drops to 78% on walking 10 metres — exercise desaturation
+            is characteristic of PCP
+          chest_exam: >-
+            Bilateral fine crackles. No consolidation dullness.
+            CXR: bilateral perihilar ground-glass infiltrates
     confounders:
-      - "Young, looks well at rest â€” SpO2 misleadingly 89% at rest"
+      - "Young, looks well at rest — SpO2 misleadingly 89% at rest"
       - "Dry cough suggests 'viral illness' or atypical pneumonia"
       - "No known immunocompromise history"
       - "Oral candidiasis dismissed as 'stress' by GP"
     vital_drift:
-      per_step: {oxygen_saturation: -2.0, respiratory_rate: 2, heart_rate: 4}
-      noise_sigma: {oxygen_saturation: 0.8, respiratory_rate: 0.5, heart_rate: 2.0}
+      per_step:
+        oxygen_saturation: -2.0
+        respiratory_rate: 2
+        heart_rate: 4
+      noise_sigma:
+        oxygen_saturation: 0.8
+        respiratory_rate: 0.5
+        heart_rate: 2.0
       starts_at_step: 1
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "examine_patient"]
+    key_clarify_actions:
+      - ask_history
+      - examine_patient
     expected_actions:
       - "HIV test with consent"
       - "CD4 count and viral load"
-      - "IV co-trimoxazole (PCP treatment â€” high dose)"
+      - "IV co-trimoxazole (PCP treatment — high dose)"
       - "IV methylprednisolone if paO2 <70mmHg"
       - "supplemental oxygen"
       - "bronchoscopy with BAL if diagnosis uncertain"
@@ -813,28 +1193,38 @@ tasks:
       - "respiratory physician consult"
       - "Pneumocystis jirovecii immunofluorescence on sputum"
     key_reasoning_keywords:
-      - "pcp"
-      - "pneumocystis"
-      - "hiv"
-      - "aids"
-      - "cd4"
-      - "cotrimoxazole"
-      - "ground glass"
-      - "immunosuppressed"
-      - "exertional desaturation"
-      - "bilateral infiltrates"
+      - pcp
+      - pneumocystis
+      - hiv
+      - aids
+      - cd4
+      - cotrimoxazole
+      - ground glass
+      - immunosuppressed
+      - exertional desaturation
+      - bilateral infiltrates
     expected_severity: high
     max_steps: 4
-    undertriage_consequence: "PCP untreated has 30-50% mortality. Treated as community pneumonia â†’ standard antibiotics ineffective, patient deteriorates rapidly."
-    clinical_pearl: "Oral candidiasis in a young person is an HIV indicator condition. Exertional desaturation out of proportion to rest SpO2 is characteristic of PCP. High-dose co-trimoxazole is the treatment."
-    why_difficulty: "No HIV history, looks well at rest, dry cough mimics viral illness. Oral candidiasis history requires pattern recognition."
+    undertriage_consequence: >-
+      PCP untreated has 30-50% mortality.
+      Treated as community pneumonia → standard antibiotics ineffective,
+      patient deteriorates rapidly.
+    clinical_pearl: >-
+      Oral candidiasis in a young person is an HIV indicator condition.
+      Exertional desaturation out of proportion to rest SpO2 is characteristic
+      of PCP. High-dose co-trimoxazole is the treatment.
+    why_difficulty: >-
+      No HIV history, looks well at rest, dry cough mimics viral illness.
+      Oral candidiasis history requires pattern recognition.
 
   - id: infective-endocarditis
     category: infectious
     difficulty: hard
     esi_correct: 2
     chief_complaint: "fever for 3 weeks, tired, and my old heart valve replacement feels strange"
-    scenario: "Prosthetic valve endocarditis presenting subacutely â€” embolic phenomena are the diagnostic clue."
+    scenario: >-
+      Prosthetic valve endocarditis presenting subacutely —
+      embolic phenomena are the diagnostic clue.
     initial_vitals:
       heart_rate: 102
       blood_pressure_systolic: 128
@@ -848,36 +1238,61 @@ tasks:
       age: 61
       sex: male
       triage_arrival_mode: ambulatory
-      symptoms: ["3 weeks fever", "night sweats", "weight loss", "fatigue", "new murmur", "splinter haemorrhages fingernails", "painful fingertip nodules"]
-      medical_history: ["metallic aortic valve replacement 8 years ago", "hypertension", "previous IV drug use (states abstinent 5 years)"]
-      current_medications: ["warfarin 4mg", "ramipril 5mg", "furosemide 20mg"]
+      symptoms:
+        - 3 weeks fever
+        - night sweats
+        - weight loss
+        - fatigue
+        - new murmur
+        - splinter haemorrhages fingernails
+        - painful fingertip nodules
+      medical_history:
+        - metallic aortic valve replacement 8 years ago
+        - hypertension
+        - previous IV drug use (states abstinent 5 years)
+      current_medications:
+        - warfarin 4mg
+        - ramipril 5mg
+        - furosemide 20mg
       allergies: []
       time_of_onset: "3 weeks of symptoms, dental procedure 6 weeks ago"
     initial_labs: []
     hidden_info:
-      - trigger: "examine_patient"
+      - trigger: examine_patient
         reveal_label: "Embolic phenomena"
         clinical_priority: 1
         data:
-          osler_nodes: "Tender Osler nodes on fingertips â€” pathognomonic of infective endocarditis"
+          osler_nodes: >-
+            Tender Osler nodes on fingertips — pathognomonic of infective
+            endocarditis
           roth_spots: "Ophthalmology review: Roth spots on fundoscopy"
-          new_murmur: "Harsh aortic regurgitation murmur â€” new, changed from previous"
-      - trigger: "ask_history"
+          new_murmur: >-
+            Harsh aortic regurgitation murmur — new, changed from previous
+      - trigger: ask_history
         reveal_label: "Dental history and prior drug use"
         clinical_priority: 1
         data:
-          dental: "Dental extraction 6 weeks ago without antibiotic prophylaxis (metallic valve â€” prophylaxis should have been given)"
-          drug_use: "Admits to IV heroin 2 weeks ago despite stated abstinence"
+          dental: >-
+            Dental extraction 6 weeks ago without antibiotic prophylaxis
+            (metallic valve — prophylaxis should have been given)
+          drug_use: >-
+            Admits to IV heroin 2 weeks ago despite stated abstinence
     confounders:
-      - "3 weeks subacute course â€” doesn't 'feel' like an emergency"
-      - "Warfarin for metallic valve â€” team focused on INR not endocarditis"
+      - "3 weeks subacute course — doesn't 'feel' like an emergency"
+      - "Warfarin for metallic valve — team focused on INR not endocarditis"
       - "Previous IVDU history may cause team to dismiss or stereotype"
     vital_drift:
-      per_step: {heart_rate: 3, temperature: 0.1}
-      noise_sigma: {heart_rate: 2.0, temperature: 0.1}
+      per_step:
+        heart_rate: 3
+        temperature: 0.1
+      noise_sigma:
+        heart_rate: 2.0
+        temperature: 0.1
       starts_at_step: 3
     expected_clarify_steps: 2
-    key_clarify_actions: ["examine_patient", "ask_history"]
+    key_clarify_actions:
+      - examine_patient
+      - ask_history
     expected_actions:
       - "blood cultures x3 from different sites BEFORE antibiotics"
       - "transoesophageal echocardiography (TOE)"
@@ -888,32 +1303,42 @@ tasks:
       - "Duke criteria assessment"
       - "anticoagulation management discussion"
     key_reasoning_keywords:
-      - "endocarditis"
-      - "infective"
-      - "prosthetic valve"
-      - "osler nodes"
-      - "janeway lesions"
-      - "roth spots"
-      - "duke criteria"
-      - "echocardiogram"
-      - "blood cultures"
-      - "dental"
+      - endocarditis
+      - infective
+      - prosthetic valve
+      - osler nodes
+      - janeway lesions
+      - roth spots
+      - duke criteria
+      - echocardiogram
+      - blood cultures
+      - dental
     expected_severity: high
     max_steps: 5
-    undertriage_consequence: "Untreated prosthetic valve endocarditis: valve destruction, embolic stroke, and death. Blood cultures must be taken BEFORE antibiotics â€” three sets."
-    clinical_pearl: "Duke criteria: fever + new murmur + prosthetic valve = IE until proven otherwise. Three blood culture sets before antibiotics. TOE is superior to TTE for prosthetic valves."
-    why_difficulty: "Subacute course, 3 weeks, looks relatively well. IVDU history creates bias. Physical signs (Osler nodes, Roth spots) require active examination."
+    undertriage_consequence: >-
+      Untreated prosthetic valve endocarditis: valve destruction, embolic
+      stroke, and death.
+      Blood cultures must be taken BEFORE antibiotics — three sets.
+    clinical_pearl: >-
+      Duke criteria: fever + new murmur + prosthetic valve = IE until proven
+      otherwise. Three blood culture sets before antibiotics.
+      TOE is superior to TTE for prosthetic valves.
+    why_difficulty: >-
+      Subacute course, 3 weeks, looks relatively well. IVDU history creates
+      bias. Physical signs (Osler nodes, Roth spots) require active examination.
 
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
   # RESPIRATORY  (4 tasks)
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
 
   - id: tension-pneumothorax
     category: respiratory
     difficulty: easy
     esi_correct: 1
     chief_complaint: "sudden chest pain and can't breathe, just had a central line put in"
-    scenario: "Iatrogenic tension pneumothorax post-CVC insertion â€” immediate needle decompression required."
+    scenario: >-
+      Iatrogenic tension pneumothorax post-CVC insertion —
+      immediate needle decompression required.
     initial_vitals:
       heart_rate: 134
       blood_pressure_systolic: 80
@@ -927,19 +1352,34 @@ tasks:
       age: 44
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["sudden onset chest pain", "severe respiratory distress", "tracheal deviation to left", "absent breath sounds right", "distended neck veins"]
-      medical_history: ["community acquired pneumonia (currently inpatient)"]
-      current_medications: ["IV piperacillin-tazobactam", "IV fluids"]
+      symptoms:
+        - sudden onset chest pain
+        - severe respiratory distress
+        - tracheal deviation to left
+        - absent breath sounds right
+        - distended neck veins
+      medical_history:
+        - "community acquired pneumonia (currently inpatient)"
+      current_medications:
+        - IV piperacillin-tazobactam
+        - IV fluids
       allergies: []
       time_of_onset: "10 minutes after CVC insertion, right subclavian"
     initial_labs: []
     hidden_info: []
     confounders:
-      - "CXR is on its way â€” do not wait for imaging"
+      - "CXR is on its way — do not wait for imaging"
       - "SpO2 monitor giving unreliable readings from poor perfusion"
     vital_drift:
-      per_step: {heart_rate: 12, blood_pressure_systolic: -12, oxygen_saturation: -3.0, gcs: -2}
-      noise_sigma: {heart_rate: 3.0, blood_pressure_systolic: 4.0, oxygen_saturation: 1.0}
+      per_step:
+        heart_rate: 12
+        blood_pressure_systolic: -12
+        oxygen_saturation: -3.0
+        gcs: -2
+      noise_sigma:
+        heart_rate: 3.0
+        blood_pressure_systolic: 4.0
+        oxygen_saturation: 1.0
       starts_at_step: 1
     expected_clarify_steps: 0
     key_clarify_actions: []
@@ -951,25 +1391,35 @@ tasks:
       - "senior airway support"
       - "call thoracics"
     key_reasoning_keywords:
-      - "tension pneumothorax"
-      - "needle decompression"
-      - "tracheal deviation"
-      - "absent breath sounds"
-      - "cvc"
-      - "haemodynamic compromise"
-      - "second intercostal"
+      - tension pneumothorax
+      - needle decompression
+      - tracheal deviation
+      - absent breath sounds
+      - cvc
+      - haemodynamic compromise
+      - second intercostal
     expected_severity: critical
     max_steps: 2
-    undertriage_consequence: "Cardiac arrest within 2-3 minutes. Waiting for CXR = death. This is the one diagnosis treated before imaging."
-    clinical_pearl: "Tension pneumothorax is a clinical diagnosis. Hypotension + absent breath sounds + raised JVP + tracheal deviation = needle in chest, RIGHT NOW."
-    why_difficulty: "Classic and clear â€” immediate ESI 1. Tests whether the model knows to act before imaging."
+    undertriage_consequence: >-
+      Cardiac arrest within 2-3 minutes.
+      Waiting for CXR = death.
+      This is the one diagnosis treated before imaging.
+    clinical_pearl: >-
+      Tension pneumothorax is a clinical diagnosis. Hypotension + absent
+      breath sounds + raised JVP + tracheal deviation = needle in chest,
+      RIGHT NOW.
+    why_difficulty: >-
+      Classic and clear — immediate ESI 1.
+      Tests whether the model knows to act before imaging.
 
   - id: pulmonary-embolism-massive
     category: respiratory
     difficulty: medium
     esi_correct: 1
     chief_complaint: "sudden breathlessness and collapsed, known cancer patient"
-    scenario: "Massive PE with obstructive shock in an anticoagulated cancer patient â€” thrombolysis vs surgical decision."
+    scenario: >-
+      Massive PE with obstructive shock in an anticoagulated cancer patient —
+      thrombolysis vs surgical decision.
     initial_vitals:
       heart_rate: 128
       blood_pressure_systolic: 76
@@ -983,32 +1433,55 @@ tasks:
       age: 63
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["sudden onset dyspnoea", "collapse", "pleuritic chest pain", "haemoptysis", "swollen right calf"]
-      medical_history: ["metastatic colorectal cancer", "recent chemotherapy", "DVT right leg 3 months ago"]
-      current_medications: ["therapeutic enoxaparin 1.2mg/kg BD", "dexamethasone 8mg", "ondansetron"]
+      symptoms:
+        - sudden onset dyspnoea
+        - collapse
+        - pleuritic chest pain
+        - haemoptysis
+        - swollen right calf
+      medical_history:
+        - metastatic colorectal cancer
+        - recent chemotherapy
+        - DVT right leg 3 months ago
+      current_medications:
+        - therapeutic enoxaparin 1.2mg/kg BD
+        - dexamethasone 8mg
+        - ondansetron
       allergies: []
       time_of_onset: "30 minutes ago, sudden collapse"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Anticoagulation history"
         clinical_priority: 1
         data:
-          enoxaparin_compliance: "Family confirms patient has been taking enoxaparin regularly â€” PE on therapeutic anticoagulation (cancer hypercoagulability)"
+          enoxaparin_compliance: >-
+            Family confirms patient has been taking enoxaparin regularly —
+            PE on therapeutic anticoagulation (cancer hypercoagulability)
           last_dose: "Last enoxaparin dose 8 hours ago"
-          recent_procedure: "No recent invasive procedure or surgery â€” thrombolysis relative risk lower"
+          recent_procedure: >-
+            No recent invasive procedure or surgery — thrombolysis relative
+            risk lower
     confounders:
-      - "Already on therapeutic anticoagulation â€” team assumes 'can't be PE'"
+      - "Already on therapeutic anticoagulation — team assumes 'can't be PE'"
       - "Cancer diagnosis may distract toward malignant aetiology"
       - "Haemoptysis raises bleeding risk concern delaying thrombolysis"
     vital_drift:
-      per_step: {heart_rate: 10, blood_pressure_systolic: -10, oxygen_saturation: -2.0, gcs: -2}
-      noise_sigma: {heart_rate: 4.0, blood_pressure_systolic: 6.0, oxygen_saturation: 1.0}
+      per_step:
+        heart_rate: 10
+        blood_pressure_systolic: -10
+        oxygen_saturation: -2.0
+        gcs: -2
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 6.0
+        oxygen_saturation: 1.0
       starts_at_step: 1
     expected_clarify_steps: 1
-    key_clarify_actions: ["ask_history"]
+    key_clarify_actions:
+      - ask_history
     expected_actions:
-      - "immediate systemic thrombolysis (alteplase 100mg IV) â€” massive PE with shock"
+      - "immediate systemic thrombolysis (alteplase 100mg IV) — massive PE with shock"
       - "100% oxygen"
       - "IV access"
       - "urgent CTPA or bedside echocardiography"
@@ -1017,27 +1490,38 @@ tasks:
       - "discuss bleeding risk vs mortality with team"
       - "ICU admission"
     key_reasoning_keywords:
-      - "pulmonary embolism"
-      - "massive pe"
-      - "thrombolysis"
-      - "alteplase"
-      - "obstructive shock"
-      - "right heart failure"
-      - "cancer"
-      - "hypercoagulable"
-      - "dvt"
+      - pulmonary embolism
+      - massive pe
+      - thrombolysis
+      - alteplase
+      - obstructive shock
+      - right heart failure
+      - cancer
+      - hypercoagulable
+      - dvt
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Massive PE without thrombolysis: cardiac arrest. PE on anticoagulation in cancer is common â€” hypercoagulable state overcomes therapeutic dosing."
-    clinical_pearl: "Massive PE + haemodynamic instability = thrombolysis despite anticoagulation. Cancer hypercoagulability is the commonest cause of PE despite enoxaparin."
-    why_difficulty: "Already on therapeutic anticoagulation creates false reassurance. Cancer diagnosis distracts. Haemoptysis paradoxically makes team hesitant to lyse."
+    undertriage_consequence: >-
+      Massive PE without thrombolysis: cardiac arrest.
+      PE on anticoagulation in cancer is common — hypercoagulable state
+      overcomes therapeutic dosing.
+    clinical_pearl: >-
+      Massive PE + haemodynamic instability = thrombolysis despite
+      anticoagulation. Cancer hypercoagulability is the commonest cause of
+      PE despite enoxaparin.
+    why_difficulty: >-
+      Already on therapeutic anticoagulation creates false reassurance.
+      Cancer diagnosis distracts.
+      Haemoptysis paradoxically makes team hesitant to lyse.
 
   - id: acute-asthma-silent-chest
     category: respiratory
     difficulty: medium
     esi_correct: 1
     chief_complaint: "asthma attack, inhalers not working, known asthmatic"
-    scenario: "Life-threatening asthma attack with silent chest â€” the absence of wheeze is an ominous sign."
+    scenario: >-
+      Life-threatening asthma attack with silent chest —
+      the absence of wheeze is an ominous sign.
     initial_vitals:
       heart_rate: 136
       blood_pressure_systolic: 122
@@ -1051,20 +1535,42 @@ tasks:
       age: 24
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["severe breathlessness", "unable to complete sentences", "no wheeze audible", "using accessory muscles", "cyanosis perioral", "paradoxical breathing"]
-      medical_history: ["severe asthma (brittle type 1)", "previous ICU admission for asthma", "eczema", "food allergy"]
-      current_medications: ["salbutamol 100mcg PRN", "fluticasone/salmeterol 500/50 BD", "montelukast 10mg", "prednisolone 5mg maintenance"]
-      allergies: ["NSAIDs â€” severe bronchospasm", "aspirin"]
+      symptoms:
+        - severe breathlessness
+        - unable to complete sentences
+        - no wheeze audible
+        - using accessory muscles
+        - cyanosis perioral
+        - paradoxical breathing
+      medical_history:
+        - "severe asthma (brittle type 1)"
+        - previous ICU admission for asthma
+        - eczema
+        - food allergy
+      current_medications:
+        - salbutamol 100mcg PRN
+        - fluticasone/salmeterol 500/50 BD
+        - montelukast 10mg
+        - prednisolone 5mg maintenance
+      allergies:
+        - "NSAIDs — severe bronchospasm"
+        - aspirin
       time_of_onset: "2 hours, worsening despite 10 puffs salbutamol"
     initial_labs: []
     hidden_info: []
     confounders:
-      - "NSAID allergy â€” team must avoid aspirin, ibuprofen"
+      - "NSAID allergy — team must avoid aspirin, ibuprofen"
       - "Silent chest wrongly interpreted as 'improving' by junior staff"
-      - "Already on high-dose ICS/LABA â€” team assumes maxed out"
+      - "Already on high-dose ICS/LABA — team assumes maxed out"
     vital_drift:
-      per_step: {oxygen_saturation: -3.0, heart_rate: 8, gcs: -2, respiratory_rate: 2}
-      noise_sigma: {oxygen_saturation: 1.0, heart_rate: 3.0}
+      per_step:
+        oxygen_saturation: -3.0
+        heart_rate: 8
+        gcs: -2
+        respiratory_rate: 2
+      noise_sigma:
+        oxygen_saturation: 1.0
+        heart_rate: 3.0
       starts_at_step: 1
     expected_clarify_steps: 0
     key_clarify_actions: []
@@ -1079,27 +1585,37 @@ tasks:
       - "do NOT use NSAIDs or aspirin (allergy)"
       - "continuous monitoring"
     key_reasoning_keywords:
-      - "life-threatening asthma"
-      - "silent chest"
-      - "magnesium"
-      - "hydrocortisone"
-      - "ipratropium"
-      - "intubation"
-      - "icu"
-      - "brittle asthma"
-      - "accessory muscles"
+      - life-threatening asthma
+      - silent chest
+      - magnesium
+      - hydrocortisone
+      - ipratropium
+      - intubation
+      - icu
+      - brittle asthma
+      - accessory muscles
     expected_severity: critical
     max_steps: 2
-    undertriage_consequence: "Silent chest = near-fatal asthma. No wheeze = no airflow = immediate intubation risk. NSAID given = fatal bronchospasm."
-    clinical_pearl: "Silent chest means airflow is so reduced you can't hear wheeze â€” it's worse than wheeze, not better. IV magnesium is evidence-based and underused."
-    why_difficulty: "Counter-intuitive: absence of wheeze is the danger sign. NSAID allergy creates treatment pitfall. 'Looks like a routine attack' creates delay."
+    undertriage_consequence: >-
+      Silent chest = near-fatal asthma. No wheeze = no airflow = immediate
+      intubation risk. NSAID given = fatal bronchospasm.
+    clinical_pearl: >-
+      Silent chest means airflow is so reduced you can't hear wheeze — it's
+      worse than wheeze, not better.
+      IV magnesium is evidence-based and underused.
+    why_difficulty: >-
+      Counter-intuitive: absence of wheeze is the danger sign.
+      NSAID allergy creates treatment pitfall.
+      'Looks like a routine attack' creates delay.
 
   - id: copd-type2-rf
     category: respiratory
     difficulty: hard
     esi_correct: 2
     chief_complaint: "COPD flare, I take home oxygen, usually use 2L but it's not helping today"
-    scenario: "Acute hypercapnic respiratory failure in COPD â€” oxygen toxicity risk and NIV decision."
+    scenario: >-
+      Acute hypercapnic respiratory failure in COPD —
+      oxygen toxicity risk and NIV decision.
     initial_vitals:
       heart_rate: 106
       blood_pressure_systolic: 152
@@ -1113,74 +1629,119 @@ tasks:
       age: 68
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["severe dyspnoea", "productive cough green sputum", "confusion", "pursed lip breathing", "barrel chest"]
-      medical_history: ["COPD GOLD IV (very severe)", "cor pulmonale", "home oxygen 2L/min", "previous 3 hospital admissions for COPD"]
-      current_medications: ["tiotropium", "salbutamol PRN", "formoterol/budesonide", "theophylline 200mg BD", "diuretics", "home O2 2L/min"]
+      symptoms:
+        - severe dyspnoea
+        - productive cough green sputum
+        - confusion
+        - pursed lip breathing
+        - barrel chest
+      medical_history:
+        - "COPD GOLD IV (very severe)"
+        - cor pulmonale
+        - home oxygen 2L/min
+        - previous 3 hospital admissions for COPD
+      current_medications:
+        - tiotropium
+        - salbutamol PRN
+        - formoterol/budesonide
+        - theophylline 200mg BD
+        - diuretics
+        - home O2 2L/min
       allergies: []
       time_of_onset: "48 hours worsening, ambulance gave high-flow O2 en route"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "ABG and O2 history"
         clinical_priority: 1
         data:
-          abg_result: "Paramedics gave 15L O2 for 20 minutes â€” likely CO2 retention now. ABG needed urgently."
-          baseline_sats: "Patient's baseline SpO2 on home O2: 88-90% â€” target 88-92%, NOT 98%"
-          theophylline_concern: "Last theophylline level 3 months ago was 18 (near toxic range). No recent level in exacerbation."
-      - trigger: "check_vitals"
+          abg_result: >-
+            Paramedics gave 15L O2 for 20 minutes — likely CO2 retention now.
+            ABG needed urgently.
+          baseline_sats: >-
+            Patient's baseline SpO2 on home O2: 88-90% — target 88-92%,
+            NOT 98%
+          theophylline_concern: >-
+            Last theophylline level 3 months ago was 18 (near toxic range).
+            No recent level in exacerbation.
+      - trigger: check_vitals
         reveal_label: "Full respiratory assessment"
         clinical_priority: 1
         data:
-          niv_criteria: "pH 7.26, pCO2 9.8 kPa â€” meets criteria for NIV (BIPAP). GCS 13 allows NIV trial."
-          accessory_muscles: "Severe accessory muscle use, paradoxical abdominal movement â€” tiring"
+          niv_criteria: >-
+            pH 7.26, pCO2 9.8 kPa — meets criteria for NIV (BIPAP).
+            GCS 13 allows NIV trial.
+          accessory_muscles: >-
+            Severe accessory muscle use, paradoxical abdominal movement
+            — tiring
     confounders:
-      - "Paramedics gave high-flow O2 â€” now at risk of O2-induced hypercapnia"
+      - "Paramedics gave high-flow O2 — now at risk of O2-induced hypercapnia"
       - "Theophylline toxicity possible in exacerbation (reduced clearance)"
-      - "Patient looks 'used to this' â€” chronic condition makes severity underestimated"
+      - "Patient looks 'used to this' — chronic condition makes severity underestimated"
       - "Cor pulmonale means fluid management is complex"
     vital_drift:
-      per_step: {gcs: -1, respiratory_rate: 2, oxygen_saturation: -1.5, heart_rate: 4}
-      noise_sigma: {gcs: 0.0, respiratory_rate: 1.0, oxygen_saturation: 0.5}
+      per_step:
+        gcs: -1
+        respiratory_rate: 2
+        oxygen_saturation: -1.5
+        heart_rate: 4
+      noise_sigma:
+        gcs: 0.0
+        respiratory_rate: 1.0
+        oxygen_saturation: 0.5
       starts_at_step: 1
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "check_vitals"]
+    key_clarify_actions:
+      - ask_history
+      - check_vitals
     expected_actions:
       - "controlled oxygen TARGET SpO2 88-92% (NOT 98-100%)"
       - "urgent ABG"
       - "NIV (BiPAP) if pH <7.35 and pCO2 elevated"
       - "nebulised salbutamol + ipratropium driven by air (not high-flow O2)"
       - "IV hydrocortisone"
-      - "antibiotics (green sputum â€” amoxicillin or doxycycline)"
+      - "antibiotics (green sputum — amoxicillin or doxycycline)"
       - "check theophylline level urgently"
       - "withhold diuretics initially (intravascular depletion in exacerbation)"
       - "respiratory physician and ICU review for intubation standby"
     key_reasoning_keywords:
-      - "type 2 respiratory failure"
-      - "hypercapnia"
-      - "copd"
-      - "controlled oxygen"
-      - "bipap"
-      - "niv"
-      - "oxygen toxicity"
-      - "theophylline"
-      - "abg"
-      - "hypoxic drive"
+      - type 2 respiratory failure
+      - hypercapnia
+      - copd
+      - controlled oxygen
+      - bipap
+      - niv
+      - oxygen toxicity
+      - theophylline
+      - abg
+      - hypoxic drive
     expected_severity: high
     max_steps: 5
-    undertriage_consequence: "High-flow O2 â†’ hypercapnia â†’ coma. Theophylline toxicity in exacerbation causes seizures and arrhythmia. NIV delay â†’ intubation and high mortality."
-    clinical_pearl: "COPD: target SpO2 88-92%, not 100%. Paramedic 15L O2 = look for CO2 narcosis on ABG. Theophylline toxic range narrows dramatically during COPD exacerbation."
-    why_difficulty: "High-flow O2 already given en route. Theophylline near-toxicity not obvious without history. 'Known COPD' normalises severity. Three interacting hazards simultaneously."
+    undertriage_consequence: >-
+      High-flow O2 → hypercapnia → coma.
+      Theophylline toxicity in exacerbation causes seizures and arrhythmia.
+      NIV delay → intubation and high mortality.
+    clinical_pearl: >-
+      COPD: target SpO2 88-92%, not 100%.
+      Paramedic 15L O2 = look for CO2 narcosis on ABG.
+      Theophylline toxic range narrows dramatically during COPD exacerbation.
+    why_difficulty: >-
+      High-flow O2 already given en route. Theophylline near-toxicity not
+      obvious without history. 'Known COPD' normalises severity.
+      Three interacting hazards simultaneously.
 
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
   # ABDOMINAL / METABOLIC  (4 tasks)
-  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ───────────────────────────────────────────────────────────────
 
   - id: dka-young-adult
     category: abdominal
     difficulty: easy
     esi_correct: 2
     chief_complaint: "vomiting, belly pain, drowsy, known type 1 diabetic"
-    scenario: "Diabetic ketoacidosis in a type 1 diabetic â€” classic presentation, requires protocol management."
+    scenario: >-
+      Diabetic ketoacidosis in a type 1 diabetic — classic presentation,
+      requires protocol management.
     initial_vitals:
       heart_rate: 122
       blood_pressure_systolic: 96
@@ -1194,9 +1755,18 @@ tasks:
       age: 22
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["vomiting", "abdominal pain", "Kussmaul respirations", "fruity breath", "polydipsia and polyuria for 3 days", "confusion"]
-      medical_history: ["type 1 diabetes mellitus"]
-      current_medications: ["insulin aspart", "insulin degludec"]
+      symptoms:
+        - vomiting
+        - abdominal pain
+        - Kussmaul respirations
+        - fruity breath
+        - polydipsia and polyuria for 3 days
+        - confusion
+      medical_history:
+        - type 1 diabetes mellitus
+      current_medications:
+        - insulin aspart
+        - insulin degludec
       allergies: []
       time_of_onset: "3 days polydipsia/polyuria, acute vomiting and confusion today"
     initial_labs:
@@ -1217,8 +1787,13 @@ tasks:
       - "Abdominal pain in DKA may suggest surgical abdomen (red herring)"
       - "SpO2 98% misleads severity assessment"
     vital_drift:
-      per_step: {heart_rate: 6, blood_pressure_systolic: -5, gcs: -1}
-      noise_sigma: {heart_rate: 2.0, blood_pressure_systolic: 3.0}
+      per_step:
+        heart_rate: 6
+        blood_pressure_systolic: -5
+        gcs: -1
+      noise_sigma:
+        heart_rate: 2.0
+        blood_pressure_systolic: 3.0
       starts_at_step: 2
     expected_clarify_steps: 0
     key_clarify_actions: []
@@ -1234,27 +1809,36 @@ tasks:
       - "catheter for strict fluid balance"
       - "nasogastric tube if vomiting"
     key_reasoning_keywords:
-      - "dka"
-      - "diabetic ketoacidosis"
-      - "insulin"
-      - "potassium"
-      - "bicarbonate"
-      - "fluid resuscitation"
-      - "kussmaul"
-      - "ketones"
-      - "acidosis"
+      - dka
+      - diabetic ketoacidosis
+      - insulin
+      - potassium
+      - bicarbonate
+      - fluid resuscitation
+      - kussmaul
+      - ketones
+      - acidosis
     expected_severity: high
     max_steps: 3
-    undertriage_consequence: "Insulin without potassium check â†’ fatal hypokalaemia and cardiac arrest. Abdominal pain misidentified as surgical â†’ delayed DKA treatment."
-    clinical_pearl: "Always check potassium BEFORE starting insulin in DKA. K+ <3.5 = replace first. Abdominal pain is DKA itself, not a surgical emergency (usually)."
-    why_difficulty: "Classic presentation, but potassium-before-insulin principle is the critical test. Abdominal pain is a confounder."
+    undertriage_consequence: >-
+      Insulin without potassium check → fatal hypokalaemia and cardiac arrest.
+      Abdominal pain misidentified as surgical → delayed DKA treatment.
+    clinical_pearl: >-
+      Always check potassium BEFORE starting insulin in DKA.
+      K+ <3.5 = replace first.
+      Abdominal pain is DKA itself, not a surgical emergency (usually).
+    why_difficulty: >-
+      Classic presentation, but potassium-before-insulin principle is the
+      critical test. Abdominal pain is a confounder.
 
   - id: ruptured-aaa
     category: abdominal
     difficulty: medium
     esi_correct: 1
     chief_complaint: "sudden severe back and stomach pain, very dizzy"
-    scenario: "Ruptured abdominal aortic aneurysm â€” the classic 'three A triad': pain, hypotension, pulsatile mass."
+    scenario: >-
+      Ruptured abdominal aortic aneurysm — the classic 'three A triad':
+      pain, hypotension, pulsatile mass.
     initial_vitals:
       heart_rate: 118
       blood_pressure_systolic: 82
@@ -1268,29 +1852,50 @@ tasks:
       age: 74
       sex: male
       triage_arrival_mode: ambulance
-      symptoms: ["sudden severe periumbilical pain", "back pain", "syncope", "diaphoresis", "pulsatile abdominal mass"]
-      medical_history: ["hypertension", "smoker 40 pack-years", "previous MI", "known 5.2cm AAA on surveillance"]
-      current_medications: ["aspirin 75mg", "atorvastatin 40mg", "ramipril 5mg"]
+      symptoms:
+        - sudden severe periumbilical pain
+        - back pain
+        - syncope
+        - diaphoresis
+        - pulsatile abdominal mass
+      medical_history:
+        - hypertension
+        - smoker 40 pack-years
+        - previous MI
+        - known 5.2cm AAA on surveillance
+      current_medications:
+        - aspirin 75mg
+        - atorvastatin 40mg
+        - ramipril 5mg
       allergies: []
       time_of_onset: "1 hour ago, sudden onset"
     initial_labs: []
     hidden_info:
-      - trigger: "examine_patient"
+      - trigger: examine_patient
         reveal_label: "Abdominal examination"
         clinical_priority: 1
         data:
-          abdominal_exam: "Pulsatile, expansile abdominal mass on palpation at umbilicus â€” do not press repeatedly"
+          abdominal_exam: >-
+            Pulsatile, expansile abdominal mass on palpation at umbilicus —
+            do not press repeatedly
           bruits: "Abdominal bruit audible on auscultation"
     confounders:
-      - "Known AAA on surveillance â€” team may think 'it was only 5.2cm'"
+      - "Known AAA on surveillance — team may think 'it was only 5.2cm'"
       - "Back pain suggests musculoskeletal"
       - "Ramipril may mask BP response initially"
     vital_drift:
-      per_step: {heart_rate: 12, blood_pressure_systolic: -15, gcs: -1, oxygen_saturation: -1.0}
-      noise_sigma: {heart_rate: 4.0, blood_pressure_systolic: 8.0}
+      per_step:
+        heart_rate: 12
+        blood_pressure_systolic: -15
+        gcs: -1
+        oxygen_saturation: -1.0
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 8.0
       starts_at_step: 1
     expected_clarify_steps: 1
-    key_clarify_actions: ["examine_patient"]
+    key_clarify_actions:
+      - examine_patient
     expected_actions:
       - "emergency vascular surgery activation"
       - "do NOT give aggressive fluids (permissive hypotension SBP 70-80)"
@@ -1301,26 +1906,37 @@ tasks:
       - "immediate theatre if haemodynamically unstable"
       - "nil by mouth"
     key_reasoning_keywords:
-      - "aaa"
-      - "aortic aneurysm"
-      - "rupture"
-      - "permissive hypotension"
-      - "vascular surgery"
-      - "pulsatile mass"
-      - "massive haemorrhage"
-      - "evar"
+      - aaa
+      - aortic aneurysm
+      - rupture
+      - permissive hypotension
+      - vascular surgery
+      - pulsatile mass
+      - massive haemorrhage
+      - evar
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Aggressive fluid resuscitation raises BP â†’ aneurysm ruptures through tamponade â†’ exsanguination. Delay to theatre = preventable death."
-    clinical_pearl: "Permissive hypotension (SBP 70-80) is deliberate in aortic rupture â€” raising BP pops the clot. Known surveillance AAA that ruptures = any size can rupture."
-    why_difficulty: "Known 5.2cm AAA creates false security ('it was small'). Permissive hypotension is counter-intuitive. CT before theatre decision is dangerous if unstable."
+    undertriage_consequence: >-
+      Aggressive fluid resuscitation raises BP → aneurysm ruptures through
+      tamponade → exsanguination.
+      Delay to theatre = preventable death.
+    clinical_pearl: >-
+      Permissive hypotension (SBP 70-80) is deliberate in aortic rupture —
+      raising BP pops the clot.
+      Known surveillance AAA that ruptures = any size can rupture.
+    why_difficulty: >-
+      Known 5.2cm AAA creates false security ('it was small').
+      Permissive hypotension is counter-intuitive.
+      CT before theatre decision is dangerous if unstable.
 
   - id: ectopic-pregnancy
     category: abdominal
     difficulty: medium
     esi_correct: 1
     chief_complaint: "lower abdominal pain and shoulder tip pain, missed period"
-    scenario: "Ruptured ectopic pregnancy in haemorrhagic shock â€” diagnosed only if pregnancy test obtained."
+    scenario: >-
+      Ruptured ectopic pregnancy in haemorrhagic shock —
+      diagnosed only if pregnancy test obtained.
     initial_vitals:
       heart_rate: 126
       blood_pressure_systolic: 88
@@ -1334,29 +1950,45 @@ tasks:
       age: 28
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["lower abdominal pain (right side)", "shoulder-tip pain (diaphragm irritation from blood)", "vaginal bleeding", "amenorrhoea 7 weeks", "syncopal episode"]
-      medical_history: ["previous right salpingitis", "IUD fitted 3 years ago"]
-      current_medications: ["IUD (Mirena)"]
+      symptoms:
+        - "lower abdominal pain (right side)"
+        - "shoulder-tip pain (diaphragm irritation from blood)"
+        - vaginal bleeding
+        - amenorrhoea 7 weeks
+        - syncopal episode
+      medical_history:
+        - previous right salpingitis
+        - IUD fitted 3 years ago
+      current_medications:
+        - "IUD (Mirena)"
       allergies: []
       time_of_onset: "6 hours pain, 2 hours severe"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Pregnancy status"
         clinical_priority: 1
         data:
-          pregnancy_test: "Urine bHCG POSITIVE â€” patient did not know she was pregnant"
-          lmp: "LMP 7 weeks ago â€” IUD does not prevent all ectopics"
+          pregnancy_test: >-
+            Urine bHCG POSITIVE — patient did not know she was pregnant
+          lmp: "LMP 7 weeks ago — IUD does not prevent all ectopics"
     confounders:
-      - "IUD â€” team assumes 'cannot be pregnant'"
+      - "IUD — team assumes 'cannot be pregnant'"
       - "Shoulder tip pain not connected to abdominal pathology"
       - "Vaginal bleeding misattributed to IUD-related bleeding"
     vital_drift:
-      per_step: {heart_rate: 10, blood_pressure_systolic: -12, gcs: -1, oxygen_saturation: -0.5}
-      noise_sigma: {heart_rate: 3.0, blood_pressure_systolic: 6.0}
+      per_step:
+        heart_rate: 10
+        blood_pressure_systolic: -12
+        gcs: -1
+        oxygen_saturation: -0.5
+      noise_sigma:
+        heart_rate: 3.0
+        blood_pressure_systolic: 6.0
       starts_at_step: 1
     expected_clarify_steps: 1
-    key_clarify_actions: ["ask_history"]
+    key_clarify_actions:
+      - ask_history
     expected_actions:
       - "urine bHCG immediately"
       - "IV access x2 large bore"
@@ -1368,27 +2000,38 @@ tasks:
       - "emergency theatre for salpingectomy"
       - "nil by mouth"
     key_reasoning_keywords:
-      - "ectopic pregnancy"
-      - "bhcg"
-      - "haemorrhagic shock"
-      - "salpingectomy"
-      - "shoulder tip pain"
-      - "peritonism"
-      - "iud"
-      - "ruptured ectopic"
-      - "gynaecology"
+      - ectopic pregnancy
+      - bhcg
+      - haemorrhagic shock
+      - salpingectomy
+      - shoulder tip pain
+      - peritonism
+      - iud
+      - ruptured ectopic
+      - gynaecology
     expected_severity: critical
     max_steps: 3
-    undertriage_consequence: "Ruptured ectopic with 3L intraperitoneal blood. IUD false-reassurance delays diagnosis. Every minute = more blood loss."
-    clinical_pearl: "IUD reduces intrauterine pregnancy risk but NOT ectopic risk â€” may actually increase it. Any woman of reproductive age with abdominal pain and shock = bHCG test."
-    why_difficulty: "IUD creates false reassurance. Shoulder-tip pain (haemoperitoneum) is not intuitively connected. Pregnancy not suspected = diagnosis missed."
+    undertriage_consequence: >-
+      Ruptured ectopic with 3L intraperitoneal blood.
+      IUD false-reassurance delays diagnosis.
+      Every minute = more blood loss.
+    clinical_pearl: >-
+      IUD reduces intrauterine pregnancy risk but NOT ectopic risk — may
+      actually increase it.
+      Any woman of reproductive age with abdominal pain and shock = bHCG test.
+    why_difficulty: >-
+      IUD creates false reassurance.
+      Shoulder-tip pain (haemoperitoneum) is not intuitively connected.
+      Pregnancy not suspected = diagnosis missed.
 
   - id: addisonian-crisis
     category: abdominal
     difficulty: hard
     esi_correct: 1
     chief_complaint: "severe vomiting for 2 days, now collapsed, known Addison's disease"
-    scenario: "Addisonian crisis precipitated by intercurrent illness â€” life-threatening cortisol deficiency."
+    scenario: >-
+      Addisonian crisis precipitated by intercurrent illness —
+      life-threatening cortisol deficiency.
     initial_vitals:
       heart_rate: 118
       blood_pressure_systolic: 74
@@ -1402,38 +2045,64 @@ tasks:
       age: 41
       sex: female
       triage_arrival_mode: ambulance
-      symptoms: ["profound weakness", "vomiting 2 days", "abdominal pain", "confusion", "syncope", "hyperpigmentation skin"]
-      medical_history: ["Addison's disease (primary adrenal insufficiency)", "hypothyroidism", "type 1 diabetes"]
-      current_medications: ["hydrocortisone 10mg AM/5mg PM", "fludrocortisone 100mcg", "levothyroxine 100mcg", "insulin"]
+      symptoms:
+        - profound weakness
+        - vomiting 2 days
+        - abdominal pain
+        - confusion
+        - syncope
+        - hyperpigmentation skin
+      medical_history:
+        - "Addison's disease (primary adrenal insufficiency)"
+        - hypothyroidism
+        - type 1 diabetes
+      current_medications:
+        - hydrocortisone 10mg AM/5mg PM
+        - fludrocortisone 100mcg
+        - levothyroxine 100mcg
+        - insulin
       allergies: []
       time_of_onset: "2 days gastroenteritis, now collapsed"
     initial_labs: []
     hidden_info:
-      - trigger: "ask_history"
+      - trigger: ask_history
         reveal_label: "Steroid sick day rules"
         clinical_priority: 1
         data:
-          sick_day_rules: "Patient did NOT double her hydrocortisone during illness (was unaware of sick day rules)"
-          missed_doses: "Vomiting means hydrocortisone not absorbed for 36 hours â€” effectively no cortisol"
-          medic_alert: "MedicAlert bracelet on wrist saying 'Addison's disease â€” needs hydrocortisone in emergency'"
-      - trigger: "check_vitals"
+          sick_day_rules: >-
+            Patient did NOT double her hydrocortisone during illness
+            (was unaware of sick day rules)
+          missed_doses: >-
+            Vomiting means hydrocortisone not absorbed for 36 hours —
+            effectively no cortisol
+          medic_alert: >-
+            MedicAlert bracelet on wrist saying 'Addison's disease — needs
+            hydrocortisone in emergency'
+      - trigger: check_vitals
         reveal_label: "Electrolytes"
         clinical_priority: 1
         data:
-          sodium: "Na+ 124 mmol/L â€” severe hyponatraemia (mineralocorticoid deficiency)"
-          potassium: "K+ 6.1 mmol/L â€” hyperkalaemia (dangerous)"
-          glucose: "Glucose 2.8 mmol/L â€” hypoglycaemia (all three are classic triad)"
+          sodium: "Na+ 124 mmol/L — severe hyponatraemia (mineralocorticoid deficiency)"
+          potassium: "K+ 6.1 mmol/L — hyperkalaemia (dangerous)"
+          glucose: "Glucose 2.8 mmol/L — hypoglycaemia (all three are classic triad)"
     confounders:
-      - "Low temperature 36.2 â€” conceals infection trigger"
+      - "Low temperature 36.2 — conceals infection trigger"
       - "Polyautoimmune disease (T1DM, hypothyroid) complicates picture"
       - "Medic alert bracelet not checked by ambulance crew"
       - "Abdominal pain suggests surgical emergency"
     vital_drift:
-      per_step: {heart_rate: 8, blood_pressure_systolic: -10, gcs: -2}
-      noise_sigma: {heart_rate: 3.0, blood_pressure_systolic: 5.0}
+      per_step:
+        heart_rate: 8
+        blood_pressure_systolic: -10
+        gcs: -2
+      noise_sigma:
+        heart_rate: 3.0
+        blood_pressure_systolic: 5.0
       starts_at_step: 1
     expected_clarify_steps: 2
-    key_clarify_actions: ["ask_history", "check_vitals"]
+    key_clarify_actions:
+      - ask_history
+      - check_vitals
     expected_actions:
       - "IV hydrocortisone 100mg STAT (the antidote)"
       - "IV 0.9% NaCl 1L STAT (volume resuscitation)"
@@ -1445,18 +2114,26 @@ tasks:
       - "endocrinology consult"
       - "ongoing IV hydrocortisone 200mg/24h"
     key_reasoning_keywords:
-      - "addisonian crisis"
-      - "addison's disease"
-      - "adrenal insufficiency"
-      - "hydrocortisone"
-      - "cortisol"
-      - "hyponatraemia"
-      - "hyperkalaemia"
-      - "sick day rules"
-      - "mineralocorticoid"
+      - addisonian crisis
+      - addison's disease
+      - adrenal insufficiency
+      - hydrocortisone
+      - cortisol
+      - hyponatraemia
+      - hyperkalaemia
+      - sick day rules
+      - mineralocorticoid
     expected_severity: critical
     max_steps: 4
-    undertriage_consequence: "Without hydrocortisone, Addisonian crisis is 100% fatal. Treating as 'vomiting and collapse' without cortisol replacement = death."
-    clinical_pearl: "Check the medic alert bracelet. IV hydrocortisone is the antidote. The triad: hyponatraemia + hyperkalaemia + hypoglycaemia = Addison's. No harm in giving hydrocortisone if in doubt."
-    why_difficulty: "Low temperature misleads. Polyautoimmune conditions complex picture. Medic alert bracelet not checked. Sick day rules failure requires specific knowledge."
-
+    undertriage_consequence: >-
+      Without hydrocortisone, Addisonian crisis is 100% fatal.
+      Treating as 'vomiting and collapse' without cortisol replacement = death.
+    clinical_pearl: >-
+      Check the medic alert bracelet.
+      IV hydrocortisone is the antidote.
+      The triad: hyponatraemia + hyperkalaemia + hypoglycaemia = Addison's.
+      No harm in giving hydrocortisone if in doubt.
+    why_difficulty: >-
+      Low temperature misleads. Polyautoimmune conditions complex picture.
+      Medic alert bracelet not checked.
+      Sick day rules failure requires specific knowledge.
