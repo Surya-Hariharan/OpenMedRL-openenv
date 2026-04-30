@@ -23,6 +23,5 @@ dist/
 
 node_modules/
 server/__pycache__/
-medical_triage_env/__pycache__/
 training/
 

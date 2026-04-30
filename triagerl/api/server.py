@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from medical_triage_env.env import app
+from fastapi import FastAPI
+
+
+app = FastAPI(title="triagerl")
 
 
 def main() -> None:

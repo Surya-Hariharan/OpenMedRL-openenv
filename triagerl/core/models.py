@@ -5,7 +5,7 @@ Canonical Pydantic v2 data models for the TriageRL system.
 
 Rules
 -----
-*  No imports from ``medical_triage_env`` — this module is the replacement.
+*  No imports from the legacy package — this module is the replacement.
 *  No business logic.  Models validate structure and types only.
 *  All models are frozen (immutable) by default to prevent accidental
    mutation in multi-step episode loops.

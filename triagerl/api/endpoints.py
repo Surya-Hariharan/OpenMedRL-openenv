@@ -1,9 +1,7 @@
-from medical_triage_env.env import (
-    health_endpoint,
-    reset_endpoint,
-    root_endpoint,
-    state_endpoint,
-    step_endpoint,
-    tasks_endpoint,
-    web_endpoint,
-)
+"""API compatibility surface for triagerl."""
+
+from __future__ import annotations
+
+from .server import app
+
+__all__ = ["app"]

@@ -127,11 +127,12 @@ Sessions are kept in memory by default. If `REDIS_URL` is set, the environment s
 
 ## Project Layout
 
-- `medical_triage_env/env.py` - FastAPI app and episode logic.
-- `medical_triage_env/tasks.py` - task corpus and validation models.
-- `medical_triage_env/graders.py` - reward and grading logic.
-- `medical_triage_env/info_revealer.py` - partial observability and vital drift.
-- `medical_triage_env/session.py` - session store implementation.
+- `triagerl/api/server.py` - FastAPI app entrypoint.
+- `triagerl/env/triage_env.py` - episode orchestration logic.
+- `triagerl/tasks/` - task corpus and validation models.
+- `triagerl/reward/` - reward and grading logic.
+- `triagerl/env/revealer.py` - partial observability and vital drift.
+- `triagerl/api/session/` - session store implementation.
 - `server/app.py` - server entrypoint.
 - `inference.py` - baseline model client.
 - `scripts/` - dataset, eval, and publish utilities.
