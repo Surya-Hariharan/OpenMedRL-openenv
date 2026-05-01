@@ -2,6 +2,10 @@
 **Deterministic Medical Triage RL Environment with Reward-Driven Episode Simulation**  
 *OpenEnv-style benchmark for ESI classification, clarifying questions, and safety-aware scoring*
 
+## Submission-ready cleanup
+
+- Removed dev/test artifacts and egg-info metadata for a leaner submission.
+- Local virtual environments (e.g. `.venv/`) are excluded via `.gitignore` and should not be included in the submitted archive.
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-black)
 ![Reward](https://img.shields.io/badge/Reward-Deterministic-success)
