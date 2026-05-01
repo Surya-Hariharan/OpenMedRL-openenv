@@ -162,11 +162,13 @@ def apply_safety_modifier(
             But we clamp to [0, m] so the logged value always looks like
             a downward multiplier, consistent with the raw ≥ 0 branch.
     """
-    if not (0.0 < multiplier <= 1.0):
+    # Allow multiplier==0.0 as a degenerate but valid configuration: this
+    # applies the strongest possible safety penalty. Reject negatives or
+    # values > 1.0 only.
+    if not (0.0 <= multiplier <= 1.0):
         raise ValueError(
-            f"multiplier must be in (0.0, 1.0], got {multiplier!r}. "
-            "Values ≥ 1.0 have no penalising effect; values ≤ 0.0 are not "
-            "meaningful for a safety multiplier."
+            f"multiplier must be in [0.0, 1.0], got {multiplier!r}. "
+            "Values > 1.0 have no penalising effect; negatives are invalid."
         )
 
     if not undertriage:

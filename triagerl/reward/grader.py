@@ -76,7 +76,11 @@ from .components import (
     score_reasoning,
     score_temporal,
 )
-from .path_quality import count_useful_clarifications, score_clinical_path
+from .path_quality import (
+    ActualClarifyRecord,
+    count_useful_clarifications,
+    score_clinical_path,
+)
 from .safety import UNDERTRIAGE_MULTIPLIER, apply_safety_modifier, is_undertriage
 
 
@@ -240,8 +244,9 @@ All values are rounded to 4 decimal places except ``final_score``.
 def compute_final_score(
     action: TriageAction,
     task: Dict[str, Any],
-    action_history: List[TriageAction],
-    steps_taken: int,
+    clarifies: Optional[List[ActualClarifyRecord]] = None,
+    action_history: Optional[List[TriageAction]] = None,
+    steps_taken: int = 1,
 ) -> Tuple[float, ComponentDict, str]:
     """
     Compute the definitive episode-end score for a classify action.
@@ -272,6 +277,16 @@ def compute_final_score(
     task = _normalise_task_dict(task)
     correct_esi = _resolve_esi(task)
 
+    # Backwards-compatible: callers may provide either a list of ActualClarifyRecord
+    # objects (new path) or the legacy action_history list of TriageAction.
+    if clarifies is None and action_history is not None:
+        clarifies = [
+            ActualClarifyRecord(question=(a.clarifying_question or ""), trigger=None)
+            for a in action_history
+            if a.action_type == "clarify"
+        ]
+    clarifies = clarifies or []
+
     # ── Per-component scores ──────────────────────────────────────────────────
     esi_score, _undertriage_from_esi = score_esi(action.esi_level, correct_esi)
 
@@ -284,7 +299,7 @@ def compute_final_score(
     )
     safety_multiplier = UNDERTRIAGE_MULTIPLIER if undertriage_flag else 1.0
 
-    clarify_count = sum(1 for a in action_history if a.action_type == "clarify")
+    clarify_count = len(clarifies)
 
     temporal_score = score_temporal(
         esi_correct=correct_esi if correct_esi is not None else 3,
@@ -295,7 +310,9 @@ def compute_final_score(
 
     # Path quality requires TaskConfig (frozen Pydantic model).
     task_config = TaskConfig.model_validate(task)
-    path_score  = score_clinical_path(action_history, task_config)
+    # score_clinical_path now expects (clarify_records, final_reasoning, task)
+    final_reasoning = action.reasoning or ""
+    path_score = score_clinical_path(clarifies, final_reasoning, task_config)
 
     action_score   = score_actions(
         action.recommended_actions,

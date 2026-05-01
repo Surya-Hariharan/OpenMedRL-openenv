@@ -44,6 +44,16 @@ class LabResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
+class ImagingFinding(BaseModel):
+    finding: str
+    modality: str = "CXR"
+    description: str = ""
+    critical: bool = False
+    hidden: bool = False
+
+    model_config = ConfigDict(frozen=True)
+
+
 class PatientInfo(BaseModel):
     patient_id: str
     age: int
