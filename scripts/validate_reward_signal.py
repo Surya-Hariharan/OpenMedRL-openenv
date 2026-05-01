@@ -86,6 +86,9 @@ def stats(name: str, values: List[float]):
 
 
 def main():
+    # Explicit start marker to ensure script execution is visible
+    print("VALIDATION_RUN_START", flush=True)
+
     task_map, task_ids = load_all_tasks()
 
     dataset_obj = TriageEpisodeDataset(
@@ -182,6 +185,22 @@ def main():
         print("\nALERT: Keyword-stuffing achieves rewards >= good policy — potential reward hacking.")
 
     print("\nDone.")
+
+    # Also write a concise summary to a local file as a fallback for capturing results
+    try:
+        with open("reward_validation_internal.txt", "w", encoding="utf-8") as fh:
+            fh.write("=== Reward validation summary\n")
+            fh.write(f"n_episodes={len(prompts)}\n")
+            fh.write(f"mean_good={mean_good:.6f}\n")
+            fh.write(f"mean_bad={mean_bad:.6f}\n")
+            fh.write(f"mean_clarify={mean_clar:.6f}\n")
+            fh.write(f"mean_stuffed={mean_stuffed:.6f}\n")
+            fh.write(f"deterministic_ok={deterministic_ok}\n")
+    except Exception:
+        pass
+
+    # Explicit end marker
+    print("VALIDATION_RUN_END", flush=True)
 
 
 if __name__ == '__main__':

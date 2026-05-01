@@ -1,27 +1,40 @@
-.env
-.env.*
-.env.backup
-
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
+*.py[cod]
 
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-
+# Virtual environments
 .venv/
 venv/
 env/
 
+# Build / Packaging
 build/
 dist/
 *.egg-info/
 
+# Logs & outputs
+*.log
+reward_validation_output.txt
+reward_validation_internal.txt
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# Misc
+*.tmp
+*.bak
+
+# Node
 node_modules/
-server/__pycache__/
-training/
 
