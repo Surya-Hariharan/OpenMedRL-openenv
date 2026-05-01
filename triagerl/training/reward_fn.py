@@ -216,11 +216,16 @@ def _score_completion(
     # and returned as part of the episode trajectory — here we only score the
     # terminal action.
     if action.action_type == "clarify":
-        # Neutral-small reward: not penalised for clarifying, not rewarded fully.
-        # The real shaping reward comes from the env step in multi-step episodes.
-        return 0.05, "clarify_action", None
+        # Small negative reward to prevent clarify-only exploits while keeping
+        # magnitude low so clarifying isn't overly penalized.
+        return -0.01, "clarify_action", None
 
     # ── Build env and replay to match prompt step ──────────────────────────────
+    # Extract step context from prompt for mid-episode replay (do this before
+    # resetting the env so we can use it to compute a fallback replay seed).
+    step_ctx_match = re.search(r"__STEP_CTX__:([^\n]+)", prompt)
+    step_context = step_ctx_match.group(1).strip() if step_ctx_match else ""
+
     try:
         env = env_factory(task_id)
         # Prefer explicit sample seed embedded in prompt for deterministic
@@ -235,10 +240,6 @@ def _score_completion(
     except Exception as e:
         return -0.5, f"env_reset_failure:{str(e)[:80]}", None
 
-    # Extract step context from prompt for mid-episode replay
-    step_ctx_match = re.search(r"__STEP_CTX__:([^\n]+)", prompt)
-    step_context   = step_ctx_match.group(1).strip() if step_ctx_match else ""
-
     # Replay clarify actions using the same seed used when the prompt was
     # generated. If the prompt contained a sample_seed we used that above
     # to reset the env and derived replay_seed; otherwise compute one.
@@ -247,17 +248,23 @@ def _score_completion(
 
     # ── Score the classify action ──────────────────────────────────────────────
     try:
+        # compute_final_score expects a plain dict for the task; TaskConfig
+        # objects must be serialized to avoid attribute/dict mismatch.
+        task_dict = task.model_dump() if hasattr(task, "model_dump") else dict(task)
+
         final_score, breakdown, _ = compute_final_score(
             action=action,
-            task=task,
-            clarify_records=clarify_records,
+            task=task_dict,
+            clarifies=clarify_records,
             steps_taken=steps_taken,
         )
     except Exception as e:
         logger.exception("compute_final_score failed for task %s: %s", task_id, e)
         return -0.5, f"grader_failure:{str(e)[:80]}", None
 
-    component_dict = breakdown.as_component_dict()
+    # compute_final_score returns a ComponentDict (plain dict) as the
+    # second value. Use it directly for logging/telemetry.
+    component_dict = breakdown if isinstance(breakdown, dict) else dict(breakdown)
     return float(final_score), "", component_dict
 
 

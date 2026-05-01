@@ -36,6 +36,7 @@ Design contract
 from __future__ import annotations
 
 from typing import FrozenSet, List, NamedTuple, Optional, Sequence
+import math
 import re
 from collections import Counter
 
@@ -51,8 +52,17 @@ BONUS_VITALS_CHECKED:          float = 0.20
 BONUS_RELEVANT_CLARIFY:        float = 0.30
 BONUS_REASONING_KEYWORDS:      float = 0.30
 KEYWORD_HIT_THRESHOLD:         int   = 2
-SPAM_PENALTY_PER_EXCESS:       float = 0.20
+SPAM_PENALTY_PER_EXCESS:       float = 0.30
 IRRELEVANT_CLARIFY_TOLERANCE:  int   = 2
+LOW_DIVERSITY_THRESHOLD:       float = 0.50
+LOW_DIVERSITY_PENALTY:         float = 0.12
+SHALLOW_MIN_WORDS:             int   = 18
+SHALLOW_STRUCTURE_BONUS:       float = 0.10
+SHALLOW_PENALTY:               float = 0.25
+KEYWORD_DENSITY_THRESHOLD:     float = 0.18
+KEYWORD_DENSITY_PENALTY:       float = 1.00
+REPETITION_START_COUNT:        int   = 3
+REPETITION_EXPONENT:           float = 1.35
 
 # Vital-sign terms used to detect explicit vital checking in question text.
 # This is a question-level check (not trigger inference).
@@ -102,6 +112,25 @@ def _question_checks_vitals(question: str) -> bool:
     return any(term in lowered for term in _VITAL_CHECK_TERMS)
 
 
+def _has_reasoning_structure(reasoning: str) -> bool:
+    """
+    Lightweight structure heuristic for clinical reasoning.
+
+    We treat reasoning as structured if it uses at least one of the common
+    explanatory markers or if it has multiple sentence clauses.
+    """
+    lowered = reasoning.lower()
+    markers = (
+        "because", "therefore", "due to", "suggests", "overall",
+        "however", "since", "risk", "concern", "plan",
+    )
+    if any(marker in lowered for marker in markers):
+        return True
+    if lowered.count(".") + lowered.count(";") >= 2:
+        return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Primary scorer
 # ---------------------------------------------------------------------------
@@ -131,7 +160,9 @@ def score_clinical_path(
 
     Returns
     -------
-    float ∈ [0.00, 1.00], rounded to 4 decimal places.
+    float
+        Positive values reward good pathway structure; negative values are
+        allowed to strongly penalise keyword stuffing.
 
     Scoring breakdown
     -----------------
@@ -182,26 +213,50 @@ def score_clinical_path(
     # reasoning. This is a small penalty so it does not dominate the
     # path score but provides a gradient against stuffing.
     tokens = [t for t in re.findall(r"[a-zA-Z0-9]+", final_reasoning.lower()) if len(t) > 2]
-    sig_tokens = [t for t in tokens if t not in {"the", "and", "for", "with", "that"}]
+    sig_tokens = [t for t in tokens if t not in {"the", "and", "for", "with", "that", "this", "from", "are", "was", "were"}]
     unique_ratio = (len(set(sig_tokens)) / len(sig_tokens)) if sig_tokens else 1.0
-    # If unique_ratio very low, reduce score mildly
-    if unique_ratio < 0.25:
-        score -= 0.10
 
-    # Detect repeated single keyword abuse: if any reasoning token appears
-    # >= REPEAT_KEYWORD_THRESHOLD times, apply a small penalty.
-    from collections import Counter
-    REPEAT_KEYWORD_THRESHOLD = 6
+    task_keywords = [kw.lower() for kw in task.key_reasoning_keywords if kw]
+    key_hits = sum(reasoning_lower.count(kw) for kw in task_keywords)
+    keyword_density = key_hits / max(1, len(sig_tokens))
+
+    if len(sig_tokens) < SHALLOW_MIN_WORDS:
+        score -= SHALLOW_PENALTY
+    if not _has_reasoning_structure(final_reasoning):
+        score -= SHALLOW_STRUCTURE_BONUS
+
+    # Low diversity is a strong anti-stuffing signal only when the text is
+    # already keyword-dense. This avoids punishing long but legitimate
+    # reasoning that uses generic filler phrases.
+    if keyword_density > KEYWORD_DENSITY_THRESHOLD and unique_ratio < LOW_DIVERSITY_THRESHOLD:
+        score -= LOW_DIVERSITY_PENALTY * (LOW_DIVERSITY_THRESHOLD - unique_ratio + 0.5)
+
+    if keyword_density > KEYWORD_DENSITY_THRESHOLD:
+        score -= KEYWORD_DENSITY_PENALTY * (keyword_density - KEYWORD_DENSITY_THRESHOLD)
+
+    # Exponential repetition penalty is applied only to task-reasoning tokens.
+    # This keeps generic filler from being over-penalised while still
+    # clamping down on repeated medical keywords.
     counts = Counter(sig_tokens)
-    if any(c >= REPEAT_KEYWORD_THRESHOLD for c in counts.values()):
-        score -= 0.05
+    key_token_set = {
+        tok
+        for kw in task_keywords
+        for tok in re.findall(r"[a-zA-Z0-9]+", kw)
+        if len(tok) > 2
+    }
+    key_repetition_severity = 0.0
+    for token, count in counts.items():
+        if token in key_token_set and count >= 2:
+            key_repetition_severity += math.pow(count - 1, 1.7)
+    if key_repetition_severity > 0.0:
+        score -= 0.0024 * key_repetition_severity
 
     # ── Penalty: spam clarification ───────────────────────────────────────────
     excess_irrelevant = max(0, irrelevant_count - IRRELEVANT_CLARIFY_TOLERANCE)
     if excess_irrelevant > 0:
         score -= SPAM_PENALTY_PER_EXCESS * excess_irrelevant
 
-    return round(max(0.0, min(1.0, score)), 4)
+    return round(score, 4)
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +284,9 @@ def count_useful_clarifications(
     expected_triggers: FrozenSet[str] = frozenset(
         k.lower() for k in task.key_clarify_actions
     )
-    return sum(
-        1 for r in clarify_records
-        if r.trigger is not None and r.trigger in expected_triggers
-    )
+    useful = 0
+    for record in clarify_records:
+        trigger = getattr(record, "trigger", None)
+        if trigger is not None and trigger in expected_triggers:
+            useful += 1
+    return useful

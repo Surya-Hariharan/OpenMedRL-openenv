@@ -91,11 +91,11 @@ from .safety import UNDERTRIAGE_MULTIPLIER, apply_safety_modifier, is_undertriag
 # Component weights (sum of W_ESI + W_TEMPORAL + W_REASONING + W_ACTIONS = 1.0)
 W_ESI:       float = 0.70
 W_TEMPORAL:  float = 0.10
-W_REASONING: float = 0.10
+W_REASONING: float = 0.13
 W_ACTIONS:   float = 0.10
 
 # Path quality bonus — added to base AFTER weighted sum (not part of weight budget)
-W_PATH:      float = 0.05
+W_PATH:      float = 0.08
 
 # Perfect-ESI bonus — added to base when esi_score == 1.0
 PERFECT_ESI_BONUS: float = 0.05
@@ -349,7 +349,9 @@ def compute_final_score(
         multiplier=safety_multiplier,
     )
 
-    final = float(base_adj)
+    # Keep the final score within the RewardBreakdown schema bounds while
+    # preserving almost all variance from the unbounded adjusted score.
+    final = float(max(REWARD_MIN, min(REWARD_MAX - 1e-6, base_adj)))
 
     # ── Component dict ────────────────────────────────────────────────────────
     components: ComponentDict = {
