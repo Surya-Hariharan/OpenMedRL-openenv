@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+import sys
+import os
+
+# Ensure the project root is on sys.path when running in containers
+# (Hugging Face Spaces runs from /app and may not automatically make
+# the repo discoverable). This mirrors adding the repo to PYTHONPATH.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from typing import Callable, List, Tuple
 
 import gradio as gr

@@ -1,6 +1,24 @@
+---
+title: OpenEnv RL Triage System
+emoji: 🧠
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # TriageRL
 **Deterministic Medical Triage RL Environment with Reward-Driven Episode Simulation**  
 *OpenEnv-style benchmark for ESI classification, clarifying questions, and safety-aware scoring*
+
+## 🔬 What this Space shows
+- **Good policy → high reward:** a focused clarify (when needed) then correct classify.
+- **Keyword stuffing → penalized:** verbosity or repeated keywords lowers path-quality.
+- **Bad triage → negative reward:** incorrect ESI or weak reasoning is strongly penalized.
+- **Clarify actions → small negative:** clarifying is allowed but not exploited for profit.
+
+Judges can click the dropdown and compare policy behaviors and final rewards instantly.
 
 ## Submission-ready cleanup
 

@@ -9,6 +9,8 @@ __pycache__/
 .venv/
 venv/
 env/
+!triagerl/env/
+!triagerl/env/**
 
 # Build / Packaging
 build/
