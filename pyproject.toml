@@ -25,4 +25,4 @@ dependencies = [
 server = "triagerl.api.server:main"
 
 [tool.setuptools.packages.find]
-include = ["triagerl*", "server*"]
+include = ["triagerl*"]

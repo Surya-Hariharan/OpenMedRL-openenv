@@ -82,45 +82,6 @@ curl -X POST http://localhost:8000/step -H "Content-Type: application/json" -d '
 }'
 ```
 
-## Evaluation And Baselines
-
-Run the deterministic baseline split evaluator:
-
-```bash
-python scripts/eval_split.py --test-n 5 --episodes-per-task 3
-```
-
-Generate a small supervised dataset from the task corpus:
-
-```bash
-python scripts/make_sft_dataset.py --out data/sft.jsonl --variants-per-task 8
-```
-
-Run the publish smoke test against a running server:
-
-```bash
-python scripts/smoke_publish.py
-```
-
-## Inference Client
-
-`inference.py` runs an LLM client against the environment. It expects these environment variables:
-
-- `BASE_URL` for the local environment server, defaulting to `http://localhost:8000`.
-- `API_BASE_URL` for the model endpoint, defaulting to the Hugging Face router.
-- `API_KEY` or `HF_TOKEN` for authentication.
-- `MODEL_NAME` for the model to query.
-
-Example:
-
-```bash
-python inference.py
-```
-
-## Training Example
-
-`train.py` is an experimental GRPO/LoRA training example. It uses additional packages that are not part of the default runtime requirements, including `unsloth`, `trl`, and `datasets`.
-
 ## Session Storage
 
 Sessions are kept in memory by default. If `REDIS_URL` is set, the environment switches to Redis-backed session storage so episodes can survive multi-worker deployments.
@@ -133,9 +94,7 @@ Sessions are kept in memory by default. If `REDIS_URL` is set, the environment s
 - `triagerl/reward/` - reward and grading logic.
 - `triagerl/env/revealer.py` - partial observability and vital drift.
 - `triagerl/api/session/` - session store implementation.
-- `server/app.py` - server entrypoint.
-- `inference.py` - baseline model client.
-- `scripts/` - dataset, eval, and publish utilities.
+- The submission bundle intentionally excludes local training, evaluation, and debug scripts.
 
 ## Notes
 
