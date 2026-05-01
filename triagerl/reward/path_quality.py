@@ -36,6 +36,8 @@ Design contract
 from __future__ import annotations
 
 from typing import FrozenSet, List, NamedTuple, Optional, Sequence
+import re
+from collections import Counter
 
 from triagerl.core.constants import VALID_TRIGGERS
 from triagerl.tasks.schema import TaskConfig
@@ -174,6 +176,25 @@ def score_clinical_path(
     )
     if keyword_hits >= KEYWORD_HIT_THRESHOLD:
         score += BONUS_REASONING_KEYWORDS
+
+    # ── Anti-gaming: keyword-stuffing / low-diversity penalty
+    # Penalise unnaturally repetitive or dense use of keywords in final
+    # reasoning. This is a small penalty so it does not dominate the
+    # path score but provides a gradient against stuffing.
+    tokens = [t for t in re.findall(r"[a-zA-Z0-9]+", final_reasoning.lower()) if len(t) > 2]
+    sig_tokens = [t for t in tokens if t not in {"the", "and", "for", "with", "that"}]
+    unique_ratio = (len(set(sig_tokens)) / len(sig_tokens)) if sig_tokens else 1.0
+    # If unique_ratio very low, reduce score mildly
+    if unique_ratio < 0.25:
+        score -= 0.10
+
+    # Detect repeated single keyword abuse: if any reasoning token appears
+    # >= REPEAT_KEYWORD_THRESHOLD times, apply a small penalty.
+    from collections import Counter
+    REPEAT_KEYWORD_THRESHOLD = 6
+    counts = Counter(sig_tokens)
+    if any(c >= REPEAT_KEYWORD_THRESHOLD for c in counts.values()):
+        score -= 0.05
 
     # ── Penalty: spam clarification ───────────────────────────────────────────
     excess_irrelevant = max(0, irrelevant_count - IRRELEVANT_CLARIFY_TOLERANCE)

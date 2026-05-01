@@ -46,15 +46,17 @@ from triagerl.tasks.schema import TaskConfig
 # ---------------------------------------------------------------------------
 
 # Base rewards from reveal quality
-SHAPING_RELEVANT:    float = 0.03   # trigger ∈ task.key_clarify_actions
-SHAPING_IRRELEVANT:  float = 0.01   # reveal occurred, trigger not key
-SHAPING_NO_REVEAL:   float = -0.01  # clarify produced nothing
+# Clarify shaping should be small (or slightly negative) so that the
+# classify reward (ESI correctness) remains the dominant learning signal.
+SHAPING_RELEVANT:    float = -0.01   # small negative: relevant reveal
+SHAPING_IRRELEVANT:  float = -0.02   # slightly more negative for irrelevant reveals
+SHAPING_NO_REVEAL:   float = -0.03   # clarify produced nothing — mild penalty
 
 # Penalties (all non-positive)
-PENALTY_INJECTION:   float = -0.02  # direct trigger token in question text
-PENALTY_NO_HIDDEN:   float = -0.01  # task has no hidden_info
-PENALTY_SOFT_LOOP:   float = -0.02  # clarify_count > expected + 1
-PENALTY_HARD_LOOP:   float = -0.05  # clarify_count > hard threshold
+PENALTY_INJECTION:   float = -0.005  # tiny penalty for direct injection tokens
+PENALTY_NO_HIDDEN:   float = -0.005  # tiny penalty when task has no hidden_info
+PENALTY_SOFT_LOOP:   float = -0.01   # small penalty for exceeding soft budget
+PENALTY_HARD_LOOP:   float = -0.03   # larger penalty for hard budget violations
 
 # Loop thresholds
 HARD_LOOP_EXCESS:    int   = 2

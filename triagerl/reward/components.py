@@ -60,11 +60,11 @@ STOPWORDS: FrozenSet[str] = frozenset({
 # ESI scoring constants
 # ---------------------------------------------------------------------------
 
-ESI_SCORE_PERFECT:      float = 1.00
-ESI_SCORE_OFF_BY_ONE:   float = 0.28   # overtriage or non-critical undertriage
-ESI_SCORE_CRITICAL_MISS: float = 0.10  # diff=1 undertriage on ESI ≤ 2
-ESI_SCORE_OFF_BY_TWO:   float = 0.00
-ESI_SCORE_LARGE_MISS:   float = -0.15  # diff ≥ 3
+ESI_SCORE_PERFECT:       float = 1.00
+ESI_SCORE_OFF_BY_ONE:    float = 0.30   # small positive for near-miss
+ESI_SCORE_OFF_BY_TWO:    float = -0.50  # moderately wrong
+ESI_SCORE_LARGE_MISS:    float = -1.00  # completely incorrect
+ESI_SCORE_CRITICAL_MISS: float = -0.75  # undertriage on critical patient is strongly negative
 ESI_CRITICAL_THRESHOLD: int   = 2      # ESI ≤ this is critical
 
 
@@ -202,17 +202,26 @@ def score_esi(
     if predicted is None or correct is None:
         return 0.0, False
 
-    diff        = abs(predicted - correct)
+    diff = abs(predicted - correct)
     undertriage = (correct <= ESI_CRITICAL_THRESHOLD and predicted > correct)
 
+    # Exact match — clear positive signal
     if diff == 0:
         return ESI_SCORE_PERFECT, undertriage
+
+    # Near miss — still positive but noticeably lower than perfect
     if diff == 1:
+        # If this is an undertriage on a critical patient, treat as a stronger
+        # negative signal than a simple off-by-one.
         if predicted > correct and correct <= ESI_CRITICAL_THRESHOLD:
             return ESI_SCORE_CRITICAL_MISS, undertriage
         return ESI_SCORE_OFF_BY_ONE, undertriage
+
+    # Larger misses are negative and increasingly punitive
     if diff == 2:
         return ESI_SCORE_OFF_BY_TWO, undertriage
+
+    # diff >= 3
     return ESI_SCORE_LARGE_MISS, undertriage
 
 

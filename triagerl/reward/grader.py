@@ -337,13 +337,19 @@ def compute_final_score(
         base += PERFECT_ESI_BONUS
 
     # ── Safety modifier ───────────────────────────────────────────────────────
+    # Apply safety modifier but DO NOT hard-clamp the adjusted base to
+    # [-1.0, 1.0] here. Clamping previously compressed diverse signals to a
+    # small set of identical values; we keep the raw adjusted base to
+    # preserve variance for learning. Downstream code may still choose to
+    # bound values for specific logging or metrics, but the training signal
+    # benefits from preserved differences.
     base_adj, safety_factor = apply_safety_modifier(
         base,
         undertriage=undertriage_flag,
         multiplier=safety_multiplier,
     )
 
-    final = float(max(REWARD_MIN, min(REWARD_MAX, base_adj)))
+    final = float(base_adj)
 
     # ── Component dict ────────────────────────────────────────────────────────
     components: ComponentDict = {
@@ -353,9 +359,7 @@ def compute_final_score(
         RewardComponent.ACTION_SCORE.value:    round(action_score,   4),
         RewardComponent.PATH_QUALITY.value:    round(path_score,     4),
         RewardComponent.SAFETY_MODIFIER.value: float(safety_factor),
-        RewardComponent.BASE_SCORE.value:      round(
-            max(REWARD_MIN, min(REWARD_MAX, base)), 4
-        ),
+        RewardComponent.BASE_SCORE.value:      round(base, 4),
         RewardComponent.FINAL_SCORE.value:     final,
     }
 

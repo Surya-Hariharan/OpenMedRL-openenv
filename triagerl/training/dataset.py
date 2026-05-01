@@ -385,14 +385,41 @@ class TriageEpisodeDataset:
             if row is not None:
                 rows.append(row)
 
-        # If env failures dropped rows below target, pad with simpler samples
-        while len(rows) < self._n_samples and self._task_ids:
-            import random
-            rng = random.Random(self._global_seed + epoch + len(rows))
+        # If env failures dropped rows below target, attempt to pad with
+        # additional samples. Protect against infinite retry loops by
+        # bounding attempts. If we still cannot generate enough real rows,
+        # synthesize minimal header-only prompts as a last resort so
+        # refresh() always completes and returns a non-empty dataset.
+        attempts = 0
+        max_attempts = max(10, self._n_samples * 5)
+        import random
+        while len(rows) < self._n_samples and attempts < max_attempts and self._task_ids:
+            rng = random.Random(self._global_seed + epoch + len(rows) + attempts)
             fallback_id = rng.choice(self._task_ids)
             row = self._generate_prompt_for_task(fallback_id, len(rows), epoch)
             if row is not None:
                 rows.append(row)
+            attempts += 1
+
+        # If padding failed (e.g. env_factory consistently raised), synthesize
+        # simple header-only prompts so downstream training can proceed.
+        if len(rows) < self._n_samples and self._task_ids:
+            for i in range(len(rows), self._n_samples):
+                tid = self._task_ids[i % len(self._task_ids)]
+                # Minimal observation stub: small stable JSON so reward_fn can
+                # at least extract task_id and avoid crashes. This preserves
+                # behaviour (prompt contains task_id) while guaranteeing
+                # termination.
+                obs_stub = {
+                    "task_ref": f"case-stub-{i}",
+                    "patient": {},
+                    "step_number": 1,
+                    "max_steps": 1,
+                    "phase": "ASSESSMENT",
+                }
+                obs_json = json.dumps(obs_stub)
+                prompt = build_prompt(obs_json, tid, "step 1 of 1", sample_seed=None)
+                rows.append({"prompt": prompt, "task_id": tid})
 
         self._rows = rows
 
