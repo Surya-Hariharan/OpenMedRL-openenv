@@ -51,6 +51,17 @@ class _TaskLoader:
             self._by_category.setdefault(cfg.category, []).append(cfg.id)
             self._by_difficulty.setdefault(cfg.difficulty, []).append(cfg.id)
 
+        task_aliases = {
+            "classic-mi": "classic-stemi",
+            "meningitis-suspect": "meningococcal-meningitis",
+            "masked-sepsis": "masked-urosepsis",
+        }
+
+        for alias, canonical in task_aliases.items():
+            if canonical in self._cache and alias not in self._cache:
+                self._cache[alias] = self._cache[canonical]
+                self._ids.append(alias)
+
         logger.info(
             "tasks_loaded",
             count=len(self._cache),

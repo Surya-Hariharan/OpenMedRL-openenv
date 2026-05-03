@@ -11,10 +11,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from typing import Callable, List, Tuple
 
 import gradio as gr
+import uvicorn
 
-from triagerl.core.models import TriageAction
+from triagerl.api.server import app as fastapi_app
 from triagerl.env.triage_env import MedicalTriageEnv
 from triagerl.tasks import load_all_tasks
+from triagerl.core.models import TriageAction
 
 
 GLOBAL_SEED = 7
@@ -232,5 +234,8 @@ with gr.Blocks(title="TriageRL Demo", analytics_enabled=False) as demo:
     run_button.click(fn=run_simulation, inputs=policy, outputs=output)
 
 
+app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+
+
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    uvicorn.run(app, host="0.0.0.0", port=7860)

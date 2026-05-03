@@ -4,6 +4,13 @@ __pycache__/
 *.pyo
 *.pyd
 *.py[cod]
+.ipynb_checkpoints/
+.python-version
+
+# Environment files
+.env
+.env.*
+*.env
 
 # Virtual environments
 .venv/
@@ -16,11 +23,17 @@ env/
 build/
 dist/
 *.egg-info/
+.eggs/
+.wheelhouse/
 
 # Logs & outputs
 *.log
 reward_validation_output.txt
 reward_validation_internal.txt
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 
 # IDE / OS
 .vscode/
@@ -32,10 +45,19 @@ Thumbs.db
 .cache/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
 
 # Misc
 *.tmp
 *.bak
+*.swp
+*.swo
+
+# Local project files
+*.sqlite3
+*.db
 
 # Node
 node_modules/
