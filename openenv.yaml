@@ -41,7 +41,7 @@ observation_space:
     - {name: task_id, type: string, description: "Opaque per-episode case reference"}
     - {name: patient, type: PatientPresentation}
     - {name: step_number, type: integer}
-    - {name: phase, type: string, values: [assessment, intervention, classification, completed]}
+    - {name: phase, type: string, values: [assessment, intervention, disposition, completed]}
     - {name: clarification_history, type: "list[string]"}
     - {name: additional_info_revealed, type: boolean}
     - {name: deterioration_signal, type: float}
