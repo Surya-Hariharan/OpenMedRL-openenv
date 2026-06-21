@@ -1,12 +1,13 @@
 name: triagerl
-version: "0.1.0"
+version: "0.2.0"
 description: >
   TriagerL: an OpenEnv-style emergency department triage benchmark.
   Agents classify patient urgency using the Emergency Severity Index (ESI 1-5).
-  The corpus contains procedurally varied clinical cases across multiple
-  categories (cardiovascular, neurological, infectious, respiratory,
-  abdominal/metabolic). Includes partial observability, stochastic
-  deterioration, and a safety-weighted, multi-component reward.
+  The corpus contains 35 procedurally varied clinical cases across 9 categories
+  (cardiovascular, neurological, infectious, respiratory, abdominal/metabolic,
+  pediatric, toxicology, obstetric, trauma). Includes partial observability,
+  stochastic deterioration, safety-weighted multi-component reward, and a
+  linearly ramped curriculum difficulty schedule.
 author: "your-team-name"
 tags:
   - openenv
@@ -16,16 +17,125 @@ tags:
   - healthcare
   - esi
   - real-world
+  - pediatric
+  - toxicology
+  - obstetric
+  - trauma
 tasks:
+  # Cardiovascular (4)
   - id: classic-stemi
     difficulty: easy
     description: "Classic STEMI with shock physiology"
+  - id: silent-nstemi-diabetic
+    difficulty: medium
+    description: "Diabetic neuropathy masking painless NSTEMI"
+  - id: aortic-dissection-mimic
+    difficulty: hard
+    description: "Type A aortic dissection presenting as back pain"
+  - id: acute-heart-failure-copd
+    difficulty: hard
+    description: "Acute decompensated heart failure masquerading as COPD exacerbation"
+  # Neurological (4)
   - id: meningococcal-meningitis
     difficulty: medium
     description: "Bacterial meningitis with non-blanching rash"
+  - id: stroke-lacunar-subtle
+    difficulty: medium
+    description: "Acute ischaemic stroke within thrombolysis window on anticoagulation"
+  - id: subarachnoid-haemorrhage
+    difficulty: medium
+    description: "SAH presenting as thunderclap headache with migraine history"
+  - id: subdural-elderly-fall
+    difficulty: hard
+    description: "Chronic subdural haematoma with supratherapeutic warfarin"
+  # Infectious / Sepsis (4)
   - id: masked-urosepsis
     difficulty: hard
     description: "Atypical elderly sepsis masked by beta-blockade and CKD"
+  - id: necrotising-fasciitis
+    difficulty: hard
+    description: "Necrotising fasciitis in a diabetic patient"
+  - id: pneumocystis-hiv
+    difficulty: hard
+    description: "PCP pneumonia as AIDS-defining illness in undiagnosed HIV"
+  - id: infective-endocarditis
+    difficulty: hard
+    description: "Prosthetic valve endocarditis with embolic phenomena"
+  # Respiratory (4)
+  - id: tension-pneumothorax
+    difficulty: easy
+    description: "Iatrogenic tension pneumothorax post-CVC insertion"
+  - id: pulmonary-embolism-massive
+    difficulty: medium
+    description: "Massive PE with obstructive shock on therapeutic anticoagulation"
+  - id: acute-asthma-silent-chest
+    difficulty: medium
+    description: "Life-threatening asthma with silent chest and NSAID allergy"
+  - id: copd-type2-rf
+    difficulty: hard
+    description: "Hypercapnic respiratory failure in COPD with oxygen toxicity risk"
+  # Abdominal / Metabolic (4)
+  - id: dka-young-adult
+    difficulty: easy
+    description: "Diabetic ketoacidosis — potassium-before-insulin principle"
+  - id: ruptured-aaa
+    difficulty: medium
+    description: "Ruptured AAA with permissive hypotension requirement"
+  - id: ectopic-pregnancy
+    difficulty: medium
+    description: "Ruptured ectopic pregnancy with IUD creating false reassurance"
+  - id: addisonian-crisis
+    difficulty: hard
+    description: "Addisonian crisis precipitated by intercurrent vomiting illness"
+  # Pediatric (4) — NEW
+  - id: febrile-seizure-toddler
+    difficulty: easy
+    description: "First simple febrile seizure — exclude meningitis"
+  - id: epiglottitis-child
+    difficulty: easy
+    description: "Bacterial epiglottitis in unvaccinated child — do not examine throat"
+  - id: intussusception
+    difficulty: medium
+    description: "Ileocolic intussusception in infant — sausage mass and redcurrant jelly stool"
+  - id: status-epilepticus-child
+    difficulty: hard
+    description: "Status epilepticus in Dravet syndrome — phenytoin contraindicated"
+  # Toxicology (4) — NEW
+  - id: paracetamol-overdose
+    difficulty: easy
+    description: "Paracetamol overdose — asymptomatic does not mean safe"
+  - id: tricyclic-antidepressant-od
+    difficulty: medium
+    description: "TCA overdose — QRS widening, sodium bicarbonate antidote"
+  - id: opioid-overdose
+    difficulty: easy
+    description: "Fentanyl opioid toxidrome — naloxone titration and re-narcotisation"
+  - id: organophosphate-poisoning
+    difficulty: hard
+    description: "Organophosphate poisoning — decontaminate first, massive atropine"
+  # Obstetric (3) — NEW
+  - id: eclampsia
+    difficulty: easy
+    description: "Eclampsia — magnesium sulphate and emergency delivery"
+  - id: placental-abruption
+    difficulty: medium
+    description: "Placental abruption with concealed haemorrhage — rigid uterus"
+  - id: postpartum-haemorrhage
+    difficulty: medium
+    description: "Primary PPH from uterine atony — uterotonic escalation and DIC"
+  # Trauma (4) — NEW
+  - id: traumatic-brain-injury
+    difficulty: medium
+    description: "Extradural haematoma — lucid interval, blown pupil, no steroids"
+  - id: massive-haemothorax
+    difficulty: medium
+    description: "Massive haemothorax — stony dull, large drain not needle"
+  - id: neurogenic-shock
+    difficulty: hard
+    description: "SCI neurogenic shock — warm peripheries, vasopressors over fluids"
+  - id: burns-inhalation-injury
+    difficulty: hard
+    description: "Major burns with inhalation injury — early intubation and CO poisoning"
 action_space:
   type: structured_json
   discriminated_union:
@@ -103,3 +213,30 @@ curriculum:
       1.0 for full curriculum pressure. At dampening ≥ 0.5 the env may
       terminate an episode early if clarify_count exceeds max(expected+2, 4).
     default: 1.0
+    ramp_schedule: >
+      v0.2: linearly ramped from 0.0 (epoch 0) to 1.0 (epoch 10 of 20)
+      and held at 1.0 for remaining epochs. Prevents premature episode
+      termination killing early GRPO exploration diversity.
+  difficulty_schedule:
+    description: >
+      Epochs 0-4: easy 60%, medium 30%, hard 10% (warm-up).
+      Epochs 5-14: easy 30%, medium 40%, hard 30% (balanced).
+      Epochs 15+: configured weights applied (hard-heavy by default).
+    epoch_ranges:
+      warmup: {epochs: "0-4", easy: 0.60, medium: 0.30, hard: 0.10}
+      balanced: {epochs: "5-14", easy: 0.30, medium: 0.40, hard: 0.30}
+      advanced: {epochs: "15+", easy: 0.20, medium: 0.40, hard: 0.40}
+scale:
+  version: "0.2.0"
+  task_count: 35
+  categories: 9
+  training:
+    model: "unsloth/Llama-3.1-8B-Instruct-bnb-4bit"
+    lora_rank: 64
+    lora_alpha: 64
+    n_samples_per_epoch: 512
+    total_steps: 2000
+    num_epochs: 20
+    num_generations: 8
+    effective_batch_size: 64
+    max_seq_length: 3072

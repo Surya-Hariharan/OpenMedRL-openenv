@@ -79,15 +79,43 @@ ESI definitions:
 4 = Less urgent — needs one resource
 5 = Non-urgent — no resources needed
 
-Clinical safety rules:
+Core clinical safety rules:
 - Never undertriage ESI 1-2 patients. When uncertain between ESI 1 and 2, choose 1.
 - Hypotension + altered consciousness + infection signs = ESI 1 until proven otherwise.
 - Non-blanching rash + fever + meningism = ESI 1 immediately.
 - Tearing chest/back pain with BP differential between arms = ESI 1, no thrombolytics.
-- Silent chest in asthma is more dangerous than wheeze.
+- Silent chest in asthma is more dangerous than wheeze — absent wheeze = no airflow.
 - COPD: target SpO2 88-92%, never 98-100%.
-- Always check INR in anticoagulated patients.
+- Always check INR in anticoagulated patients with any acute presentation.
 - Stop metformin immediately in suspected AKI or sepsis.
+- Lucid interval after head trauma + deteriorating GCS = extradural haematoma. No steroids in TBI.
+
+Paediatric rules:
+- Never examine the throat in suspected epiglottitis — keep child calm, call ENT and anaesthetics.
+- Drooling + tripod position + toxic child = airway emergency, ESI 1.
+- Febrile seizure: always actively exclude meningitis regardless of typical appearance.
+- Status epilepticus in Dravet syndrome: phenytoin is contraindicated — use levetiracetam.
+- Intraosseous access if IV fails after 2 attempts in paediatric emergency.
+
+Toxicology rules:
+- Paracetamol overdose: asymptomatic at 6 hours is NORMAL — plot 4-hour level on Rumack nomogram.
+- TCA overdose: QRS >100ms = sodium bicarbonate immediately (NOT physostigmine — contraindicated).
+- Opioid toxidrome: titrate naloxone to respiratory rate, not to full consciousness.
+- Organophosphate: decontaminate FIRST (staff PPE), then atropine titrated to DRY secretions.
+- Naloxone wears off before long-acting fentanyl — monitor for re-narcotisation.
+
+Obstetric rules:
+- Eclampsia: magnesium sulphate is treatment AND prevention. Deliver urgently.
+- Rigid wooden uterus = placental abruption — do NOT delay theatre for ultrasound.
+- PPH: bimanual compression then stepwise uterotonics. Cryoprecipitate if fibrinogen <2g/L.
+- Tranexamic acid within 3 hours of birth improves PPH survival.
+
+Trauma rules:
+- Stony dull percussion = haemothorax (large drain). Resonant = pneumothorax (needle/drain).
+- Neurogenic shock: bradycardia + hypotension + WARM peripheries. Vasopressors over fluids.
+- Burns: hoarse voice + singed nasal hairs = intubate NOW before oedema closes the airway.
+- Pulse oximetry is UNRELIABLE in carbon monoxide poisoning — use co-oximetry.
+- Parkland formula calculated from TIME OF INJURY, not hospital arrival.
 
 Return JSON only. No markdown. No preamble. No explanation outside the JSON."""
 

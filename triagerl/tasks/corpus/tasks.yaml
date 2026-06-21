@@ -2137,3 +2137,1648 @@ tasks:
       Low temperature misleads. Polyautoimmune conditions complex picture.
       Medic alert bracelet not checked.
       Sick day rules failure requires specific knowledge.
+
+  # ───────────────────────────────────────────────────────────────
+  # PEDIATRIC  (4 tasks)
+  # ───────────────────────────────────────────────────────────────
+
+  - id: febrile-seizure-toddler
+    category: pediatric
+    difficulty: easy
+    esi_correct: 2
+    chief_complaint: "my 2-year-old just had a seizure and has a very high temperature"
+    scenario: >-
+      First simple febrile seizure in a toddler — now postictal but rousable.
+      Must exclude bacterial meningitis and identify fever source.
+    initial_vitals:
+      heart_rate: 148
+      blood_pressure_systolic: 96
+      blood_pressure_diastolic: 58
+      respiratory_rate: 30
+      oxygen_saturation: 97.0
+      temperature: 39.8
+      gcs: 12
+    patient_info:
+      patient_id: "ped-001"
+      age: 2
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - postictal drowsiness
+        - high fever
+        - generalised tonic-clonic seizure lasting 2 minutes
+        - no focal neurology
+        - no rash
+      medical_history:
+        - no previous seizures
+        - no known epilepsy
+      current_medications: []
+      allergies: []
+      time_of_onset: "seizure 15 minutes ago, fever for 24 hours"
+    initial_labs: []
+    hidden_info:
+      - trigger: ask_history
+        reveal_label: "Vaccination and seizure detail"
+        clinical_priority: 1
+        data:
+          vaccination_status: "Up to date. No recent vaccinations in last 2 weeks."
+          development: "Normal developmental milestones for age."
+          family_history: "Father had one febrile seizure as a child — resolves the genetic risk."
+          seizure_detail: >-
+            Generalised, <3 minutes, no focal component, resolved spontaneously.
+            Classic simple febrile seizure features met.
+      - trigger: examine_patient
+        reveal_label: "Meningism signs and infection source"
+        clinical_priority: 1
+        data:
+          meningism_signs: >-
+            No neck stiffness. No photophobia. No petechial rash. Fontanelle flat.
+            Throat injected — viral pharyngitis likely fever source.
+          neurological: >-
+            Opening eyes to voice. No focal neurological deficit. Moving all limbs.
+            GCS improving — now 13. Postictal state resolving.
+    confounders:
+      - "Parent panic makes history-taking difficult"
+      - "GCS 12 in child is alarming but expected in postictal phase"
+      - "Must actively exclude bacterial meningitis despite typical febrile seizure picture"
+      - "Temperature 39.8 — source must be identified to guide discharge"
+    vital_drift:
+      per_step:
+        heart_rate: -5
+        gcs: 1
+        temperature: -0.1
+      noise_sigma:
+        heart_rate: 3.0
+        temperature: 0.1
+      starts_at_step: 2
+    expected_clarify_steps: 2
+    key_clarify_actions:
+      - ask_history
+      - examine_patient
+    expected_actions:
+      - "paracetamol 15mg/kg or ibuprofen for fever"
+      - "assess for meningism signs urgently"
+      - "blood glucose"
+      - "observe minimum 1-2 hours post-seizure"
+      - "identify and treat infection source"
+      - "paediatric review"
+      - "parental education on febrile seizure recurrence and first aid"
+      - "consider LP if <12 months or atypical features"
+    key_reasoning_keywords:
+      - febrile seizure
+      - febrile convulsion
+      - postictal
+      - meningitis
+      - temperature
+      - paracetamol
+      - lumbar puncture
+      - paediatric
+      - first seizure
+    expected_severity: high
+    max_steps: 4
+    undertriage_consequence: >-
+      Missed meningitis in a postictal feverish child.
+      Discharged without adequate observation — re-seizes at home.
+    clinical_pearl: >-
+      Simple febrile seizure: generalised, <15 minutes, one per febrile illness, age 6m-5y.
+      Always actively exclude meningitis. ESI 2 (not 1) if resolved and rousable.
+      LP indicated if <12 months, complex features, or any meningism signs.
+    why_difficulty: >-
+      Classic presentation but distinguishing benign febrile seizure from
+      early bacterial meningitis requires active clinical examination.
+      Parent distress adds time pressure.
+
+  - id: epiglottitis-child
+    category: pediatric
+    difficulty: easy
+    esi_correct: 1
+    chief_complaint: "4-year-old child won't stop drooling, can't swallow, making a noise when breathing"
+    scenario: >-
+      Acute bacterial epiglottitis in an unvaccinated child — drooling, tripod
+      position, inspiratory stridor. Examining the throat risks complete airway obstruction.
+    initial_vitals:
+      heart_rate: 148
+      blood_pressure_systolic: 102
+      blood_pressure_diastolic: 64
+      respiratory_rate: 32
+      oxygen_saturation: 94.0
+      temperature: 39.6
+      gcs: 14
+    patient_info:
+      patient_id: "ped-002"
+      age: 4
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - drooling
+        - tripod sitting position
+        - inspiratory stridor
+        - muffled hot-potato voice
+        - severe sore throat
+        - toxic appearance
+        - refusing to lie flat
+      medical_history:
+        - "Hib vaccination not given — family declined vaccination programme"
+      current_medications: []
+      allergies: []
+      time_of_onset: "2 hours, rapidly worsening"
+    initial_labs: []
+    hidden_info:
+      - trigger: ask_history
+        reveal_label: "Vaccination history and progression"
+        clinical_priority: 1
+        data:
+          vaccination: >-
+            Hib vaccine not given — parents declined vaccination programme.
+            No prior respiratory illnesses or similar episodes.
+          progression: >-
+            Went from mild sore throat at lunch to unable to swallow saliva in 2 hours.
+            Refuses food and fluids. Drooling throughout.
+    confounders:
+      - "May look like croup initially given the stridor"
+      - "Urge to examine throat must be suppressed — complete obstruction risk"
+      - "Unvaccinated child in Hib-vaccine era — team may not suspect epiglottitis"
+      - "Child appears anxious — any agitation can precipitate complete obstruction"
+    vital_drift:
+      per_step:
+        oxygen_saturation: -3.0
+        heart_rate: 6
+        gcs: -1
+      noise_sigma:
+        oxygen_saturation: 1.0
+        heart_rate: 3.0
+      starts_at_step: 1
+    expected_clarify_steps: 0
+    key_clarify_actions: []
+    expected_actions:
+      - "do NOT examine throat — risk of complete obstruction"
+      - "keep child calm in parents lap — do not separate"
+      - "senior ENT surgeon and anaesthetist immediately"
+      - "prepare for emergency intubation in theatre under gas"
+      - "humidified oxygen — do NOT force mask onto child"
+      - "do NOT attempt IV access until airway secured"
+      - "IV ceftriaxone 50mg/kg after airway secured"
+      - "soft tissue lateral neck X-ray (thumb sign) only if child is stable"
+      - "PICU bed post-intubation"
+    key_reasoning_keywords:
+      - epiglottitis
+      - supraglottitis
+      - drooling
+      - tripod
+      - stridor
+      - thumb sign
+      - hib
+      - airway emergency
+      - ceftriaxone
+      - intubation
+    expected_severity: critical
+    max_steps: 2
+    undertriage_consequence: >-
+      Examination of throat triggers laryngospasm and complete airway obstruction.
+      Any agitation (including IV attempts) can tip 90% occluded airway to 100%.
+    clinical_pearl: >-
+      Classic teaching: NEVER examine the throat in suspected epiglottitis.
+      Drooling + tripod position + toxic child = ENT and anaesthetist NOW.
+      Hib vaccine has made this rarer but not extinct in unvaccinated children.
+    why_difficulty: >-
+      Classic but critical. The instinct to examine and identify the cause is
+      the danger. Differentiating from croup requires pattern recognition.
+      Unvaccinated status is the crucial historical clue.
+
+  - id: intussusception
+    category: pediatric
+    difficulty: medium
+    esi_correct: 2
+    chief_complaint: "9-month-old baby with sudden episodes of screaming and drawing up legs for last 4 hours"
+    scenario: >-
+      Ileocolic intussusception in an infant — episodic severe colicky pain,
+      bilious vomiting, redcurrant jelly stool, sausage-shaped abdominal mass.
+    initial_vitals:
+      heart_rate: 162
+      blood_pressure_systolic: 88
+      blood_pressure_diastolic: 56
+      respiratory_rate: 36
+      oxygen_saturation: 98.0
+      temperature: 37.4
+      gcs: 14
+    patient_info:
+      patient_id: "ped-003"
+      age: 0
+      sex: male
+      triage_arrival_mode: ambulatory
+      symptoms:
+        - episodic severe abdominal pain
+        - drawing up legs between crying episodes
+        - inconsolable crying in waves every 15-20 minutes
+        - bilious vomiting
+        - pale and lethargic between episodes
+      medical_history:
+        - viral upper respiratory tract infection 1 week ago
+      current_medications: []
+      allergies: []
+      time_of_onset: "4 hours of episodic pain, now lethargic between episodes"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Abdominal examination and stool"
+        clinical_priority: 1
+        data:
+          abdominal_mass: >-
+            Sausage-shaped mass palpable in right upper quadrant between pain
+            episodes. Empty right iliac fossa (Dance sign positive).
+          stool: >-
+            Nappy contains redcurrant jelly — blood-stained mucous stool.
+            Indicates bowel ischaemia from intussusception.
+      - trigger: check_vitals
+        reveal_label: "Hydration and perfusion status"
+        clinical_priority: 2
+        data:
+          hydration: >-
+            Sunken fontanelle, dry mucous membranes, capillary refill 3 seconds.
+            Estimated 5-8% dehydration.
+          interval_behaviour: >-
+            Child goes quiet and floppy between episodes — ominous sign indicating
+            increasing bowel ischaemia.
+    confounders:
+      - "Between episodes child may appear relatively well — false reassurance"
+      - "Age makes history unreliable — no verbal history from infant"
+      - "Bilious vomiting may suggest gastroenteritis initially"
+      - "Redcurrant jelly stool is a late sign — may not be present early"
+    vital_drift:
+      per_step:
+        heart_rate: 8
+        blood_pressure_systolic: -5
+        gcs: -1
+      noise_sigma:
+        heart_rate: 5.0
+        blood_pressure_systolic: 4.0
+      starts_at_step: 2
+    expected_clarify_steps: 2
+    key_clarify_actions:
+      - examine_patient
+      - check_vitals
+    expected_actions:
+      - "urgent abdominal ultrasound (target sign / doughnut sign)"
+      - "IV access and fluid resuscitation"
+      - "nil by mouth"
+      - "paediatric surgical consult urgently"
+      - "air enema reduction under fluoroscopy (diagnostic and therapeutic)"
+      - "emergency surgery if perforation suspected or air enema fails"
+      - "blood glucose"
+      - "nasogastric tube if vomiting"
+    key_reasoning_keywords:
+      - intussusception
+      - ileocolic
+      - target sign
+      - dance sign
+      - redcurrant jelly
+      - sausage mass
+      - air enema
+      - paediatric surgery
+      - telescoping bowel
+    expected_severity: high
+    max_steps: 4
+    undertriage_consequence: >-
+      Delayed diagnosis leads to bowel ischaemia, perforation, and peritonitis.
+      Treated as gastroenteritis and sent home — perforates overnight.
+    clinical_pearl: >-
+      Classic triad: colicky abdominal pain + bilious vomiting + redcurrant jelly stool (late sign).
+      Ultrasound is the investigation of choice: target or doughnut sign.
+      Air enema is both diagnostic and therapeutic; surgery if this fails.
+    why_difficulty: >-
+      Infant cannot provide history. Between-episode wellness creates false reassurance.
+      Redcurrant jelly stool is a late sign — absence does not exclude diagnosis.
+      Viral prodrome misleads toward gastroenteritis.
+
+  - id: status-epilepticus-child
+    category: pediatric
+    difficulty: hard
+    esi_correct: 1
+    chief_complaint: "5-year-old with epilepsy having a seizure that has not stopped for 22 minutes"
+    scenario: >-
+      Convulsive status epilepticus in a child with Dravet syndrome —
+      buccal midazolam already given at home with only partial response.
+      Second-line IV agent required; phenytoin is contraindicated in Dravet.
+    initial_vitals:
+      heart_rate: 168
+      blood_pressure_systolic: 108
+      blood_pressure_diastolic: 70
+      respiratory_rate: 24
+      oxygen_saturation: 91.0
+      temperature: 38.4
+      gcs: 3
+    patient_info:
+      patient_id: "ped-004"
+      age: 5
+      sex: female
+      triage_arrival_mode: ambulance
+      symptoms:
+        - generalised tonic-clonic seizure ongoing
+        - perioral cyanosis
+        - no IV access established by paramedics
+        - fever noted at home
+      medical_history:
+        - "Dravet syndrome (SCN1A sodium channelopathy)"
+        - previous status epilepticus requiring ICU admission x2
+      current_medications:
+        - sodium valproate 400mg BD
+        - clobazam 10mg BD
+        - "buccal midazolam 10mg PRN — given at home 18 minutes ago, partial effect only"
+      allergies: []
+      time_of_onset: "seizure started 22 minutes ago"
+    initial_labs: []
+    hidden_info:
+      - trigger: ask_history
+        reveal_label: "Rescue medication history and triggers"
+        clinical_priority: 1
+        data:
+          rescue_use: >-
+            Buccal midazolam 10mg given at home 18 minutes ago — partial
+            response only. Second dose risks respiratory depression.
+          fever: "Temperature 38.9 at home — fever is a major seizure trigger in Dravet syndrome."
+          valproate_level: >-
+            Last valproate level 6 weeks ago was subtherapeutic.
+            Possible medication non-compliance or illness reducing absorption.
+          prior_se: >-
+            Last status epilepticus admission 8 months ago required 3 benzodiazepines
+            then levetiracetam IV. Phenytoin was NOT used — Dravet protocol.
+    confounders:
+      - "Buccal midazolam already given — second benzodiazepine dose risks apnoea"
+      - "Dravet syndrome makes standard SE protocol dangerous (phenytoin pro-convulsant)"
+      - "No IV access — every second of seizure causes neuronal damage"
+      - "Fever driving status requires antipyretics alongside seizure management"
+    vital_drift:
+      per_step:
+        oxygen_saturation: -3.0
+        heart_rate: 8
+        gcs: -1
+      noise_sigma:
+        oxygen_saturation: 1.0
+        heart_rate: 4.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - ask_history
+    expected_actions:
+      - "IV or IO midazolam 0.1mg/kg (or intranasal if no access) immediately"
+      - "high-flow oxygen and BVM-assist if SpO2 <88"
+      - "IO access if IV fails after 2 attempts (within 5 minutes)"
+      - "levetiracetam IV 60mg/kg over 5-10 minutes (2nd line in Dravet)"
+      - "do NOT give phenytoin — pro-convulsant in Dravet syndrome"
+      - "paracetamol PR or IV for fever"
+      - "blood glucose urgently"
+      - "senior paediatric neurology and anaesthetic review immediately"
+      - "PICU alert"
+      - "EEG monitoring if seizure ceases but child remains unresponsive"
+    key_reasoning_keywords:
+      - status epilepticus
+      - dravet syndrome
+      - midazolam
+      - levetiracetam
+      - refractory seizure
+      - intraosseous
+      - sodium channelopathy
+      - phenytoin contraindicated
+      - paediatric
+      - scn1a
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Prolonged seizure causes hippocampal neuronal death and long-term cognitive impairment.
+      Phenytoin in Dravet syndrome is pro-convulsant — standard paediatric SE protocol causes harm.
+    clinical_pearl: >-
+      Dravet syndrome: phenytoin and sodium channel blockers are contraindicated (worsen seizures).
+      Levetiracetam IV is the preferred second-line agent after benzodiazepine failure.
+      IO access must be placed within 5 minutes of failed IV attempts — time is brain.
+    why_difficulty: >-
+      Dravet-specific phenytoin contraindication is expert-level knowledge.
+      Partial midazolam response creates benzodiazepine dosing dilemma.
+      Intraosseous access decision timing under maximal stress.
+
+  # ───────────────────────────────────────────────────────────────
+  # TOXICOLOGY  (4 tasks)
+  # ───────────────────────────────────────────────────────────────
+
+  - id: paracetamol-overdose
+    category: toxicology
+    difficulty: easy
+    esi_correct: 2
+    chief_complaint: "19-year-old took all her paracetamol tablets about 6 hours ago, feels fine now"
+    scenario: >-
+      Paracetamol overdose — currently well and asymptomatic at 6 hours.
+      Nomogram timing is critical; appearing well does NOT mean safe.
+    initial_vitals:
+      heart_rate: 88
+      blood_pressure_systolic: 118
+      blood_pressure_diastolic: 74
+      respiratory_rate: 16
+      oxygen_saturation: 99.0
+      temperature: 36.8
+      gcs: 15
+    patient_info:
+      patient_id: "tox-001"
+      age: 19
+      sex: female
+      triage_arrival_mode: ambulatory
+      symptoms:
+        - nausea
+        - mild right upper quadrant discomfort
+        - otherwise alert and orientated
+      medical_history:
+        - depression
+        - previous overdose attempt 1 year ago
+      current_medications:
+        - sertraline 100mg OD
+      allergies: []
+      time_of_onset: "approximately 6 hours ago, 32 tablets (500mg each = 16g total)"
+    initial_labs: []
+    hidden_info:
+      - trigger: ask_history
+        reveal_label: "Ingestion details and psychiatric risk"
+        clinical_priority: 1
+        data:
+          ingestion_detail: >-
+            All 32 tablets taken within 30 minutes. No alcohol co-ingestion.
+            No other medications taken in overdose. Deliberate self-harm with intent to die.
+          psychiatric: >-
+            Ongoing suicidal ideation. Patient requests discharge. Psychiatric
+            assessment is mandatory before any discharge decision.
+      - trigger: check_vitals
+        reveal_label: "Paracetamol level and liver function"
+        clinical_priority: 1
+        data:
+          paracetamol_level: >-
+            4-hour paracetamol level: 220 mg/L — ABOVE treatment line on
+            Rumack-Matthew nomogram. NAC is indicated urgently.
+          inr: >-
+            INR 1.1, LFTs normal — liver function intact at this stage (early,
+            pre-hepatotoxic phase). This will change without NAC.
+    confounders:
+      - "Patient appears completely well — normalises perceived severity in junior staff"
+      - "6 hours post-ingestion: hepatocellular damage not yet clinically apparent"
+      - "Sertraline co-prescription raises serotonin syndrome concern (not applicable here)"
+      - "Patient denial and desire to leave creates premature discharge pressure"
+    vital_drift:
+      per_step:
+        heart_rate: 4
+      noise_sigma:
+        heart_rate: 2.0
+      starts_at_step: 4
+    expected_clarify_steps: 2
+    key_clarify_actions:
+      - ask_history
+      - check_vitals
+    expected_actions:
+      - "paracetamol level at minimum 4 hours post-ingestion"
+      - "plot level on Rumack-Matthew nomogram"
+      - "IV N-acetylcysteine (NAC) if above treatment line"
+      - "LFTs, INR, U&E, creatinine baseline"
+      - "psychiatric assessment — suicide risk (mandatory before discharge)"
+      - "do NOT discharge until psychiatric review completed"
+      - "IV access"
+      - "toxicology advice if staggered ingestion"
+    key_reasoning_keywords:
+      - paracetamol
+      - acetaminophen
+      - n-acetylcysteine
+      - nac
+      - rumack-matthew
+      - nomogram
+      - hepatotoxicity
+      - liver failure
+      - deliberate self harm
+      - overdose
+    expected_severity: high
+    max_steps: 4
+    undertriage_consequence: >-
+      Asymptomatic patient discharged — develops fulminant hepatic failure day 3.
+      NAC not started within therapeutic window — liver transplant or death.
+    clinical_pearl: >-
+      Paracetamol overdose: asymptomatic at 6 hours is the NORMAL early course, not safety.
+      Plot 4-hour level on Rumack-Matthew nomogram to determine NAC need.
+      Staggered ingestion uses modified nomogram — always ask about timing.
+    why_difficulty: >-
+      Completely well appearance is the main trap. Clinicians underestimate urgency
+      when patient is talking and walking normally. Psychiatric risk assessment
+      is a mandatory parallel task that can be missed.
+
+  - id: tricyclic-antidepressant-od
+    category: toxicology
+    difficulty: medium
+    esi_correct: 1
+    chief_complaint: "found unconscious at home, empty amitriptyline packet and wine bottle on the floor"
+    scenario: >-
+      Tricyclic antidepressant (TCA) overdose — QRS widening, hypotension,
+      coma, anticholinergic toxidrome. Sodium bicarbonate is the antidote for cardiac toxicity.
+    initial_vitals:
+      heart_rate: 142
+      blood_pressure_systolic: 78
+      blood_pressure_diastolic: 46
+      respiratory_rate: 8
+      oxygen_saturation: 88.0
+      temperature: 37.1
+      gcs: 7
+    patient_info:
+      patient_id: "tox-002"
+      age: 35
+      sex: female
+      triage_arrival_mode: ambulance
+      symptoms:
+        - loss of consciousness
+        - one generalised seizure en route
+        - hypotension
+        - sinus tachycardia
+        - fixed dilated pupils bilaterally
+        - dry skin and mucous membranes
+        - urinary retention
+      medical_history:
+        - recurrent depressive disorder
+        - previous TCA overdose 2 years ago
+      current_medications:
+        - amitriptyline 150mg nocte
+      allergies: []
+      time_of_onset: "unknown — found 1 hour ago, last seen well approximately 5 hours ago"
+    initial_labs:
+      - name: "ECG QRS duration"
+        value: "140"
+        unit: "ms"
+        reference_range: "<100ms"
+        critical: true
+        hidden: false
+    hidden_info:
+      - trigger: check_vitals
+        reveal_label: "ECG and anticholinergic signs"
+        clinical_priority: 1
+        data:
+          ecg: >-
+            12-lead ECG: sinus tachycardia 142bpm, QRS 140ms (severely widened),
+            terminal R wave in aVR >3mm, QTc 560ms. Right bundle branch morphology.
+            High risk of ventricular tachycardia and fibrillation.
+          anticholinergic: >-
+            Fixed dilated pupils, dry flushed skin, urinary retention, absent bowel
+            sounds — classic anticholinergic toxidrome. Hot, dry, blind, mad, full.
+      - trigger: ask_history
+        reveal_label: "Dose ingested and co-ingestants"
+        clinical_priority: 2
+        data:
+          dose: >-
+            Full blister pack of amitriptyline 150mg — approximately 30 tablets
+            = 4500mg. Empty wine bottle found — significant alcohol co-ingestion.
+    confounders:
+      - "Anticholinergic signs superficially resemble sympathomimetic toxidrome"
+      - "QRS >100ms is the critical cardiac threshold — many confuse this with QTc (wrong marker)"
+      - "Physostigmine is CONTRAINDICATED despite the anticholinergic picture — increases seizures"
+      - "Class Ia/Ic antiarrhythmics (flecainide, quinidine) are absolutely contraindicated"
+    vital_drift:
+      per_step:
+        heart_rate: 10
+        blood_pressure_systolic: -8
+        gcs: -1
+        oxygen_saturation: -2.0
+      noise_sigma:
+        heart_rate: 5.0
+        blood_pressure_systolic: 6.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - check_vitals
+    expected_actions:
+      - "RSI and intubation — GCS 7, aspiration risk, airway unprotected"
+      - "IV sodium bicarbonate 1-2mmol/kg bolus STAT for QRS >100ms"
+      - "target arterial pH 7.45-7.55 with bicarbonate infusion"
+      - "IV access x2 large bore"
+      - "IV fluid resuscitation for hypotension"
+      - "noradrenaline infusion for refractory hypotension"
+      - "do NOT give physostigmine (seizure risk)"
+      - "do NOT use class Ia/Ic antiarrhythmics (amiodarone cautiously if needed)"
+      - "benzodiazepines for seizures"
+      - "toxicology and ICU consult"
+      - "continuous 12-lead ECG monitoring"
+    key_reasoning_keywords:
+      - tricyclic antidepressant
+      - tca
+      - amitriptyline
+      - sodium bicarbonate
+      - qrs widening
+      - anticholinergic
+      - toxidrome
+      - ventricular tachycardia
+      - alkalinisation
+      - physostigmine contraindicated
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      QRS >100ms without sodium bicarbonate — VT/VF arrest within minutes.
+      Physostigmine given for anticholinergic signs — refractory seizures and asystole.
+    clinical_pearl: >-
+      TCA toxicity: QRS >100ms = sodium bicarbonate immediately. NOT QTc.
+      Target arterial pH 7.45-7.55 — alkaline pH reduces TCA sodium channel binding.
+      Physostigmine is absolutely contraindicated in TCA overdose.
+    why_difficulty: >-
+      QRS vs QTc confusion is a common and dangerous error. Physostigmine trap
+      for anticholinergic presentation. Multiple simultaneous life-saving
+      interventions required in parallel.
+
+  - id: opioid-overdose
+    category: toxicology
+    difficulty: easy
+    esi_correct: 1
+    chief_complaint: "found unresponsive in public toilet, needle and drug paraphernalia present"
+    scenario: >-
+      Opioid toxidrome from suspected fentanyl — classic triad of pin-point pupils,
+      respiratory depression, and coma. Naloxone titration required.
+    initial_vitals:
+      heart_rate: 52
+      blood_pressure_systolic: 96
+      blood_pressure_diastolic: 62
+      respiratory_rate: 4
+      oxygen_saturation: 78.0
+      temperature: 35.8
+      gcs: 4
+    patient_info:
+      patient_id: "tox-003"
+      age: 29
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - unresponsive
+        - pin-point miotic pupils bilaterally
+        - respiratory rate 4 per minute
+        - central cyanosis
+        - needle track marks bilateral antecubital fossae
+      medical_history:
+        - known intravenous drug user
+        - hepatitis C positive
+      current_medications:
+        - "methadone 80mg OD on OST programme — last collected 2 days ago"
+      allergies: []
+      time_of_onset: "found approximately 10 minutes ago, last known well 45 minutes ago"
+    initial_labs: []
+    hidden_info:
+      - trigger: ask_history
+        reveal_label: "Substance and witness history"
+        clinical_priority: 1
+        data:
+          witnessed: >-
+            Bystander reports patient injected substance approximately 30-40 minutes ago.
+            Believed to be fentanyl — not regular heroin. Higher potency than usual batch.
+          methadone: >-
+            Methadone 80mg OD — last consumed 2 days ago. Opioid tolerance present
+            but high-potency fentanyl overcomes tolerance.
+    confounders:
+      - "Hypothermia co-exists from cold environment — may mask other signs"
+      - "Single large naloxone bolus will wear off before long-acting fentanyl — re-narcotisation"
+      - "Naloxone may precipitate acute withdrawal — agitation and vomiting increase aspiration risk"
+      - "Aspiration pneumonia may have already occurred during unwitnessed period"
+    vital_drift:
+      per_step:
+        oxygen_saturation: -5.0
+        respiratory_rate: -1
+        gcs: -1
+      noise_sigma:
+        oxygen_saturation: 2.0
+        respiratory_rate: 0.5
+      starts_at_step: 1
+    expected_clarify_steps: 0
+    key_clarify_actions: []
+    expected_actions:
+      - "airway positioning and bag-valve-mask ventilation immediately"
+      - "high-flow oxygen"
+      - "naloxone 400mcg IV/IM — titrate to respiratory rate NOT to full consciousness"
+      - "do NOT give large single naloxone dose (acute withdrawal, agitation, aspiration)"
+      - "establish IV access"
+      - "naloxone infusion (2/3 of effective bolus per hour) for fentanyl"
+      - "observe minimum 4-6 hours post-fentanyl exposure for re-narcotisation"
+      - "blood glucose"
+      - "warming for hypothermia"
+    key_reasoning_keywords:
+      - opioid overdose
+      - naloxone
+      - miosis
+      - respiratory depression
+      - fentanyl
+      - re-narcotisation
+      - toxidrome
+      - opioid triad
+      - titration
+    expected_severity: critical
+    max_steps: 2
+    undertriage_consequence: >-
+      Respiratory rate 4 = imminent respiratory arrest.
+      No naloxone → hypoxic cardiac arrest within minutes.
+      Single large naloxone bolus wears off before long-acting fentanyl — re-narcotises and dies.
+    clinical_pearl: >-
+      Opioid triad: miosis + respiratory depression + reduced consciousness.
+      Naloxone titration (not large bolus) prevents acute withdrawal and aspiration.
+      Re-narcotisation from fentanyl requires infusion or repeated doses and prolonged observation.
+    why_difficulty: >-
+      Classic presentation but naloxone dosing strategy is the critical nuance.
+      Fentanyl duration exceeds naloxone duration — must counsel team on re-narcotisation risk.
+      Withdrawal precipitation creates new dangers if over-reversed.
+
+  - id: organophosphate-poisoning
+    category: toxicology
+    difficulty: hard
+    esi_correct: 1
+    chief_complaint: "farm worker found collapsed in field next to pesticide containers, vomiting and twitching"
+    scenario: >-
+      Organophosphate pesticide poisoning — cholinergic toxidrome (SLUDGE/DUMBELS).
+      Massive atropine titration required; decontamination protects staff.
+    initial_vitals:
+      heart_rate: 42
+      blood_pressure_systolic: 88
+      blood_pressure_diastolic: 58
+      respiratory_rate: 10
+      oxygen_saturation: 85.0
+      temperature: 37.2
+      gcs: 9
+    patient_info:
+      patient_id: "tox-004"
+      age: 45
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - bradycardia
+        - excessive salivation and lacrimation
+        - vomiting and diarrhoea
+        - miosis (pin-point pupils)
+        - bronchospasm and bronchorrhoea
+        - widespread muscle fasciculations
+        - urinary incontinence
+        - confusion
+      medical_history:
+        - agricultural worker
+        - no significant past medical history
+      current_medications: []
+      allergies: []
+      time_of_onset: "approximately 1 hour ago, found in field beside pesticide spray equipment"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Toxidrome examination and decontamination"
+        clinical_priority: 1
+        data:
+          smell: >-
+            Strong organophosphate chemical smell on clothing and skin.
+            Staff must wear full PPE — secondary contamination risk is real.
+          fasciculations: >-
+            Widespread muscle fasciculations, tremor, and carpopedal spasm.
+            Pin-point pupils (miosis). Profuse lacrimation and salivation.
+          bronchorrhoea: >-
+            Copious frothy airway secretions requiring constant suctioning.
+            Breath sounds: diffuse wheeze bilaterally.
+      - trigger: ask_history
+        reveal_label: "Pesticide type and amount"
+        clinical_priority: 1
+        data:
+          pesticide: >-
+            Malathion 50% concentrate — approximately 200mL dermal exposure
+            and possible ingestion. Organophosphate — inhibits acetylcholinesterase.
+          decontamination: >-
+            Paramedics removed outer clothing only — chemical still on skin.
+            Full skin decontamination has NOT occurred.
+          ache_activity: >-
+            Red cell acetylcholinesterase activity 12% of normal —
+            confirms severe organophosphate poisoning (>50% reduction is significant).
+    confounders:
+      - "Decontamination of patient must occur BEFORE detailed assessment — staff at risk"
+      - "Atropine doses required are 100mg+ in severe poisoning — psychological hesitation"
+      - "Pralidoxime is only effective EARLY before enzyme aging — window is 24-48 hours"
+      - "Seizures respond to benzodiazepines, NOT phenytoin (different mechanism)"
+    vital_drift:
+      per_step:
+        heart_rate: -4
+        oxygen_saturation: -3.0
+        gcs: -2
+        respiratory_rate: -2
+      noise_sigma:
+        heart_rate: 3.0
+        oxygen_saturation: 1.5
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - examine_patient
+    expected_actions:
+      - "DECONTAMINATE first — remove all clothing, thorough skin wash (staff use PPE)"
+      - "atropine 2mg IV every 5 minutes — titrate to DRY secretions (not heart rate)"
+      - "may require 100mg+ atropine in severe poisoning — do not hesitate"
+      - "pralidoxime (2-PAM) 30mg/kg IV loading dose — effective within 24-48 hours only"
+      - "intubation for bronchorrhoea, bronchospasm, and airway protection"
+      - "high-dose IV benzodiazepines for seizures (NOT phenytoin)"
+      - "continuous ECG monitoring"
+      - "red cell acetylcholinesterase activity level"
+      - "toxicology consult urgently"
+      - "ICU admission"
+    key_reasoning_keywords:
+      - organophosphate
+      - sludge
+      - cholinergic toxidrome
+      - atropine
+      - pralidoxime
+      - acetylcholinesterase
+      - decontamination
+      - bronchorrhoea
+      - miosis
+      - fasciculations
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      No decontamination — treating staff become poisoned from secondary exposure.
+      Insufficient atropine — death from bronchospasm and respiratory failure.
+      Pralidoxime given late after enzyme aging — no effect on acetylcholinesterase activity.
+    clinical_pearl: >-
+      SLUDGE mnemonic: Salivation, Lacrimation, Urination, Defaecation, GI distress, Emesis.
+      Atropine end-point is DRY secretions — not heart rate. May need 100mg+ in severe cases.
+      Decontaminate FIRST — delay puts all staff at risk of secondary poisoning.
+    why_difficulty: >-
+      Normalising massive atropine doses is psychologically difficult.
+      Decontamination priority is frequently neglected under time pressure.
+      Pralidoxime time-window awareness distinguishes expert from junior management.
+
+  # ───────────────────────────────────────────────────────────────
+  # OBSTETRIC  (3 tasks)
+  # ───────────────────────────────────────────────────────────────
+
+  - id: eclampsia
+    category: obstetric
+    difficulty: easy
+    esi_correct: 1
+    chief_complaint: "32-week pregnant woman just had a seizure in the waiting room, BP was very high"
+    scenario: >-
+      Eclampsia — tonic-clonic seizure in late pregnancy with severe hypertension
+      and proteinuria. Magnesium sulphate is the treatment and prevention.
+    initial_vitals:
+      heart_rate: 108
+      blood_pressure_systolic: 188
+      blood_pressure_diastolic: 118
+      respiratory_rate: 18
+      oxygen_saturation: 94.0
+      temperature: 37.0
+      gcs: 10
+    patient_info:
+      patient_id: "obs-001"
+      age: 28
+      sex: female
+      triage_arrival_mode: ambulatory
+      symptoms:
+        - post-ictal confusion following witnessed generalised seizure
+        - severe headache in the hours preceding seizure
+        - visual disturbances — flashing lights
+        - oedema hands and face
+        - epigastric pain
+      medical_history:
+        - "G1P0 — primigravida, 32 weeks gestation"
+        - pre-eclampsia diagnosed at 28 weeks
+      current_medications:
+        - labetalol 200mg BD
+        - aspirin 75mg OD (started at 12 weeks for PE prophylaxis)
+      allergies: []
+      time_of_onset: "seizure 5 minutes ago lasting approximately 90 seconds"
+    initial_labs:
+      - name: "Urine protein dipstick"
+        value: "3+"
+        unit: ""
+        reference_range: "negative"
+        critical: true
+        hidden: false
+    hidden_info:
+      - trigger: check_vitals
+        reveal_label: "Fetal monitoring and reflex assessment"
+        clinical_priority: 1
+        data:
+          fetal_heart_rate: >-
+            CTG: fetal heart rate 88bpm — significant bradycardia, indicating
+            fetal distress and possible placental compromise from maternal seizure.
+          reflexes: >-
+            Hyperreflexia ++ and sustained ankle clonus — indicating significant
+            cortical irritability. MgSO4 threshold not yet reached.
+      - trigger: ask_history
+        reveal_label: "Pre-eclampsia course"
+        clinical_priority: 1
+        data:
+          antenatal_care: >-
+            Last BP at antenatal clinic 2 days ago: 168/108 with 2+ proteinuria.
+            Referred for same-day hospital review but patient did not attend.
+          symptoms_progression: >-
+            Worsening frontal headache and visual floaters for 12 hours.
+            Epigastric pain developing — suggests hepatic involvement (HELLP possible).
+    confounders:
+      - "Eclampsia can occur postpartum — must consider in any woman seizing within 6 weeks of delivery"
+      - "Labetalol inadequately controlling BP — IV antihypertensive required"
+      - "Fetal bradycardia requires simultaneous obstetric emergency team response"
+      - "MgSO4 toxicity (respiratory depression, absent reflexes) requires monitoring"
+    vital_drift:
+      per_step:
+        gcs: -1
+        blood_pressure_systolic: 8
+      noise_sigma:
+        gcs: 0.0
+        blood_pressure_systolic: 6.0
+      starts_at_step: 2
+    expected_clarify_steps: 2
+    key_clarify_actions:
+      - check_vitals
+      - ask_history
+    expected_actions:
+      - "IV magnesium sulphate 4g loading dose over 5-15 minutes"
+      - "IV labetalol 50mg or IV hydralazine 5mg for severe hypertension"
+      - "target SBP <150mmHg — not too aggressively (fetal perfusion)"
+      - "airway positioning, left lateral tilt, high-flow oxygen"
+      - "obstetric emergency team activation immediately"
+      - "CTG for continuous fetal monitoring"
+      - "IV access x2"
+      - "blood: FBC, U&E, LFTs, LDH, clotting, uric acid"
+      - "urinary catheter for strict fluid balance"
+      - "expedite delivery — likely emergency caesarean section"
+      - "HDU/ITU level care"
+    key_reasoning_keywords:
+      - eclampsia
+      - magnesium sulphate
+      - pre-eclampsia
+      - severe hypertension
+      - seizure
+      - fetal distress
+      - caesarean
+      - hellp syndrome
+      - proteinuria
+      - obstetric emergency
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Untreated eclampsia: maternal cerebral haemorrhage and death.
+      Fetal bradycardia without immediate delivery leads to stillbirth.
+    clinical_pearl: >-
+      MgSO4 is both the treatment of eclamptic seizure AND prevention of recurrence.
+      Target SBP <150mmHg with IV antihypertensives urgently.
+      Delivery is the only definitive treatment — mode depends on maternal/fetal status.
+    why_difficulty: >-
+      Classic but time-critical requiring simultaneous maternal and fetal management.
+      MgSO4 dosing and monitoring for toxicity (respiratory, reflexes) requires knowledge.
+      Fetal bradycardia triggers a parallel emergency response.
+
+  - id: placental-abruption
+    category: obstetric
+    difficulty: medium
+    esi_correct: 1
+    chief_complaint: "36-week pregnant, sudden severe abdominal pain and no fetal movements for 2 hours"
+    scenario: >-
+      Placental abruption with concealed haemorrhage — hypovolaemic shock
+      disproportionate to visible bleeding. Rigid uterus is the diagnostic sign.
+    initial_vitals:
+      heart_rate: 126
+      blood_pressure_systolic: 86
+      blood_pressure_diastolic: 52
+      respiratory_rate: 24
+      oxygen_saturation: 96.0
+      temperature: 37.0
+      gcs: 14
+    patient_info:
+      patient_id: "obs-002"
+      age: 34
+      sex: female
+      triage_arrival_mode: ambulance
+      symptoms:
+        - sudden onset severe abdominal pain
+        - no fetal movements for 2 hours
+        - board-like rigid abdomen
+        - hypovolaemic shock
+        - minimal visible vaginal bleeding
+      medical_history:
+        - "G3P2 — two previous vaginal deliveries"
+        - hypertension in pregnancy
+        - smoker 10 cigarettes per day
+      current_medications:
+        - labetalol 100mg BD
+      allergies: []
+      time_of_onset: "1 hour ago, sudden onset at rest"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Uterine examination and fetal heart"
+        clinical_priority: 1
+        data:
+          abdomen: >-
+            Uterus woody-hard and extremely tender — board-like rigidity with
+            no uterine relaxation. Consistent with concealed placental abruption.
+            Estimated 1.5L concealed haemorrhage behind posterior placenta.
+          fetal_heart: >-
+            CTG: fetal heart rate 58bpm — severe bradycardia with absent variability.
+            Ominous pattern indicating severe fetal compromise.
+      - trigger: ask_history
+        reveal_label: "Risk factors and substance history"
+        clinical_priority: 2
+        data:
+          risk_factors: >-
+            Hypertension, smoking, and multiparity are established risk factors.
+            Previous abruption with first pregnancy — not volunteered initially.
+          cocaine_use: >-
+            Patient admits to cocaine use 3-4 hours ago — vasoconstriction is
+            a potent precipitant of placental abruption.
+    confounders:
+      - "Minimal external bleeding — concealed haemorrhage massively underestimated"
+      - "Labetalol masks tachycardia expected from significant blood loss"
+      - "Rigid abdomen may be interpreted as uterine contractions or early labour"
+      - "Cocaine history volunteered only after direct questioning"
+    vital_drift:
+      per_step:
+        heart_rate: 12
+        blood_pressure_systolic: -10
+        gcs: -1
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 8.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - examine_patient
+    expected_actions:
+      - "obstetric emergency team and theatre NOW"
+      - "emergency caesarean section — fetal bradycardia"
+      - "activate massive haemorrhage protocol"
+      - "IV access x2 large bore"
+      - "crossmatch 6 units packed red cells minimum"
+      - "FFP and platelets in 1:1:1 ratio early"
+      - "IV tranexamic acid 1g"
+      - "continuous CTG monitoring"
+      - "do NOT delay for ultrasound — clinical diagnosis from rigid uterus"
+      - "neonatologist to attend delivery (premature infant)"
+    key_reasoning_keywords:
+      - placental abruption
+      - concealed haemorrhage
+      - rigid uterus
+      - fetal distress
+      - caesarean
+      - massive haemorrhage protocol
+      - obstetric emergency
+      - hypovolaemic shock
+      - cocaine
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Concealed haemorrhage kills mother and fetus within minutes without surgery.
+      Delay for ultrasound when uterus is rigid wastes critical operative time.
+    clinical_pearl: >-
+      Abruption: external bleeding does NOT reflect total blood loss — most is concealed.
+      Woody rigid uterus = abruption until proven otherwise. Do NOT delay theatre for imaging.
+      Cocaine is a potent precipitant — always ask directly.
+    why_difficulty: >-
+      Concealed haemorrhage creates a diagnostic trap. Labetalol masks the tachycardia
+      expected with major haemorrhage. Cocaine use is not volunteered.
+
+  - id: postpartum-haemorrhage
+    category: obstetric
+    difficulty: medium
+    esi_correct: 1
+    chief_complaint: "woman who delivered 2 hours ago is bleeding very heavily and feels faint"
+    scenario: >-
+      Primary postpartum haemorrhage from uterine atony — >1000mL blood loss.
+      Stepwise uterotonic and surgical escalation required.
+    initial_vitals:
+      heart_rate: 138
+      blood_pressure_systolic: 82
+      blood_pressure_diastolic: 54
+      respiratory_rate: 26
+      oxygen_saturation: 96.0
+      temperature: 36.6
+      gcs: 14
+    patient_info:
+      patient_id: "obs-003"
+      age: 31
+      sex: female
+      triage_arrival_mode: ambulance
+      symptoms:
+        - heavy continuous vaginal bleeding
+        - feeling faint and dizzy
+        - hypotension
+        - pale and clammy
+        - soft boggy uterine fundus
+      medical_history:
+        - "G3P3 — just delivered third baby 2 hours ago"
+        - previous primary PPH with second delivery
+        - polyhydramnios in this pregnancy (overdistended uterus predisposes to atony)
+      current_medications:
+        - oxytocin infusion started after delivery
+      allergies: []
+      time_of_onset: "2 hours post-delivery of healthy 4.2kg infant"
+    initial_labs:
+      - name: "Estimated blood loss"
+        value: ">1200"
+        unit: "mL"
+        reference_range: "<500mL"
+        critical: true
+        hidden: false
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Uterine tone and placental status"
+        clinical_priority: 1
+        data:
+          uterus: >-
+            Uterus soft and boggy — failed to contract adequately. Fundus at
+            umbilicus, poorly contracted. Classic uterine atony (most common cause of PPH).
+          placenta: >-
+            Placenta delivered complete — no retained products on inspection.
+            No visible genital tract lacerations. Cervix intact.
+      - trigger: ask_history
+        reveal_label: "Fibrinogen and coagulation status"
+        clinical_priority: 1
+        data:
+          fibrinogen: >-
+            Fibrinogen 1.7g/L — DIC developing. Target >2g/L.
+            Cryoprecipitate required urgently to restore fibrinogen.
+          risk_factors: >-
+            Multiparity, previous PPH, macrosomic baby (4.2kg), and polyhydramnios
+            — all contribute to uterine atony. High-risk case.
+    confounders:
+      - "Ongoing oxytocin infusion gives false reassurance that atony is treated"
+      - "Tachycardia and hypotension from haemorrhage, not infection — antibiotics alone unhelpful"
+      - "DIC developing — replacing only blood without coagulation factors worsens coagulopathy"
+    vital_drift:
+      per_step:
+        heart_rate: 10
+        blood_pressure_systolic: -12
+        gcs: -1
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 6.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - examine_patient
+    expected_actions:
+      - "bimanual uterine compression immediately"
+      - "oxytocin 10 units IV bolus and infusion (may already be running — escalate rate)"
+      - "ergometrine 500mcg IM (avoid if hypertension)"
+      - "carboprost 250mcg IM every 15 minutes maximum 8 doses (avoid in asthma)"
+      - "IV tranexamic acid 1g within 3 hours of birth"
+      - "activate massive haemorrhage protocol"
+      - "crossmatch 6 units"
+      - "cryoprecipitate for fibrinogen <2g/L"
+      - "obstetric emergency team and anaesthetics"
+      - "uterine tamponade balloon if medical management failing"
+      - "B-Lynch suture or emergency hysterectomy if balloon fails"
+    key_reasoning_keywords:
+      - postpartum haemorrhage
+      - pph
+      - uterine atony
+      - oxytocin
+      - ergometrine
+      - carboprost
+      - tranexamic acid
+      - bimanual compression
+      - fibrinogen
+      - massive haemorrhage
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      PPH kills in minutes. Atony without escalating uterotonic therapy leads to exsanguination.
+      DIC without fibrinogen replacement causes coagulopathic death.
+    clinical_pearl: >-
+      PPH 4Ts: Tone (atony 70%), Tissue (retained), Trauma (lacerations), Thrombin (coagulopathy).
+      Tranexamic acid within 3 hours of birth improves maternal survival.
+      Fibrinogen <2g/L needs cryoprecipitate — FFP alone is insufficient.
+    why_difficulty: >-
+      Multiple uterotonics in escalating sequence. DIC recognition and targeted
+      cryoprecipitate therapy. Knowing when medical management has failed and to
+      proceed to surgical intervention.
+
+  # ───────────────────────────────────────────────────────────────
+  # TRAUMA  (4 tasks)
+  # ───────────────────────────────────────────────────────────────
+
+  - id: traumatic-brain-injury
+    category: trauma
+    difficulty: medium
+    esi_correct: 1
+    chief_complaint: "fell off motorbike at 60mph without helmet, was talking after impact but now very drowsy"
+    scenario: >-
+      Extradural haematoma after blunt head trauma — classic lucid interval
+      followed by deteriorating GCS. Blown pupil indicates uncal herniation.
+    initial_vitals:
+      heart_rate: 56
+      blood_pressure_systolic: 178
+      blood_pressure_diastolic: 98
+      respiratory_rate: 10
+      oxygen_saturation: 94.0
+      temperature: 37.0
+      gcs: 11
+    patient_info:
+      patient_id: "trauma-001"
+      age: 22
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - deteriorating level of consciousness
+        - lucid interval documented at scene (GCS 15)
+        - severe headache
+        - vomiting x2
+        - "right pupil 6mm and unreactive — blown"
+        - temporal scalp laceration
+      medical_history:
+        - no significant past medical history
+      current_medications: []
+      allergies: []
+      time_of_onset: "45 minutes ago — GCS 15 at scene, now GCS 11 and falling"
+    initial_labs: []
+    hidden_info:
+      - trigger: check_vitals
+        reveal_label: "Cushing reflex and ICP signs"
+        clinical_priority: 1
+        data:
+          cushing_triad: >-
+            Cushing reflex present: hypertension 178/98 + bradycardia 56 +
+            irregular breathing. Indicates severely raised ICP with impending herniation.
+            This is a pre-terminal neurological sign.
+          pupil_detail: >-
+            Right pupil 6mm fixed and unreactive — uncal herniation compressing
+            right CN III. Extradural haematoma from middle meningeal artery tear.
+      - trigger: ask_history
+        reveal_label: "Alcohol and mechanism"
+        clinical_priority: 2
+        data:
+          mechanism: >-
+            High-speed motorcycle vs barrier at approximately 60mph.
+            Not wearing helmet. Talked coherently at scene — classic lucid interval.
+          alcohol: >-
+            Blood alcohol 0.18% — intoxication may mask true neurological depression.
+            Do NOT attribute altered consciousness to alcohol alone.
+    confounders:
+      - "Lucid interval creates false reassurance — clinicians assume injury is minor"
+      - "Alcohol blamed for confusion instead of pursuing neurological cause"
+      - "Bradycardia and hypertension look 'stable' but indicate impending herniation"
+      - "Cushing reflex is classic teaching but frequently missed under time pressure"
+    vital_drift:
+      per_step:
+        gcs: -2
+        heart_rate: -4
+        blood_pressure_systolic: 8
+        oxygen_saturation: -1.5
+      noise_sigma:
+        gcs: 0.0
+        heart_rate: 2.0
+        blood_pressure_systolic: 6.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - check_vitals
+    expected_actions:
+      - "immediate CT head and c-spine without contrast"
+      - "neurosurgical team activation for emergency craniotomy"
+      - "RSI and intubation if GCS deteriorates below 9"
+      - "target pCO2 35-40mmHg — do NOT hyperventilate routinely"
+      - "head of bed 30 degrees"
+      - "mannitol 0.5-1g/kg IV or hypertonic saline for herniation signs"
+      - "maintain SpO2 >95% and MAP >80mmHg"
+      - "maintain full c-spine immobilisation"
+      - "do NOT give corticosteroids — harmful in TBI (CRASH trial)"
+      - "primary and secondary trauma survey (ATLS)"
+    key_reasoning_keywords:
+      - traumatic brain injury
+      - extradural haematoma
+      - lucid interval
+      - cushing reflex
+      - herniation
+      - blown pupil
+      - craniotomy
+      - raised icp
+      - middle meningeal artery
+      - steroids contraindicated
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Untreated extradural haematoma with blown pupil: death within 30-60 minutes.
+      Corticosteroids in TBI increase mortality — CRASH trial evidence.
+    clinical_pearl: >-
+      Lucid interval → GCS deterioration = extradural haematoma until proven otherwise.
+      Middle meningeal artery tear: temporal skull fracture → EDH.
+      Corticosteroids are ABSOLUTELY CONTRAINDICATED in traumatic brain injury.
+    why_difficulty: >-
+      Lucid interval creates dangerous false reassurance. Alcohol blamed for
+      confusion. Cushing reflex recognition under time pressure. Steroid
+      contraindication is counter-intuitive.
+
+  - id: massive-haemothorax
+    category: trauma
+    difficulty: medium
+    esi_correct: 1
+    chief_complaint: "stabbed in right chest 20 minutes ago, very pale and struggling to breathe"
+    scenario: >-
+      Massive haemothorax from penetrating chest trauma — stony dull
+      percussion, absent breath sounds right, hypovolaemic shock.
+      Large-bore drain required; needle decompression is wrong here.
+    initial_vitals:
+      heart_rate: 138
+      blood_pressure_systolic: 72
+      blood_pressure_diastolic: 46
+      respiratory_rate: 32
+      oxygen_saturation: 86.0
+      temperature: 36.8
+      gcs: 13
+    patient_info:
+      patient_id: "trauma-002"
+      age: 27
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - penetrating stab wound right lateral chest
+        - severe respiratory distress
+        - haemoptysis
+        - hypovolaemic shock
+        - pallor and diaphoresis
+      medical_history:
+        - no significant past medical history
+      current_medications: []
+      allergies: []
+      time_of_onset: "20 minutes ago, single stab wound right 5th intercostal space"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Chest percussion and auscultation"
+        clinical_priority: 1
+        data:
+          chest_exam: >-
+            Right hemithorax: stony dull to percussion — haemothorax.
+            Absent breath sounds right (NOT resonant as in pneumothorax).
+            Trachea midline — NOT deviated (distinguishes from tension PTX).
+            Estimated 1.5L blood in right pleural space.
+          wound: "3cm penetrating wound, 5th intercostal space, right lateral thorax"
+    confounders:
+      - "Absent right breath sounds may prompt needle decompression (WRONG — it's haemothorax)"
+      - "Trachea is midline — distinguishes from tension pneumothorax"
+      - "Percussion dullness is the key discriminating sign (resonant = PTX, dull = HTX)"
+      - "Haemopneumothorax can coexist — drain treats both but needle does not drain blood"
+    vital_drift:
+      per_step:
+        heart_rate: 10
+        blood_pressure_systolic: -12
+        oxygen_saturation: -2.0
+        gcs: -1
+      noise_sigma:
+        heart_rate: 4.0
+        blood_pressure_systolic: 8.0
+        oxygen_saturation: 1.0
+      starts_at_step: 1
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - examine_patient
+    expected_actions:
+      - "large-bore intercostal drain (28-32Fr) — 5th ICS anterior axillary line right"
+      - "do NOT perform needle decompression (haemothorax not pneumothorax)"
+      - "IV access x2 large bore"
+      - "activate massive haemorrhage protocol"
+      - "crossmatch 6 units"
+      - "consider autotransfusion of drained blood"
+      - "trauma surgery consult"
+      - "thoracotomy if initial drain >1500mL or ongoing >200mL per hour"
+      - "CXR post drain insertion"
+      - "ATLS primary and secondary survey"
+    key_reasoning_keywords:
+      - haemothorax
+      - massive haemothorax
+      - penetrating chest trauma
+      - intercostal drain
+      - stony dull
+      - haemopneumothorax
+      - autotransfusion
+      - thoracotomy
+      - trachea midline
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Needle decompression of haemothorax does not drain blood — exsanguination continues.
+      Unrecognised massive haemothorax: death from haemorrhagic shock.
+    clinical_pearl: >-
+      Percussion note discriminates: stony dull = haemothorax, resonant = pneumothorax.
+      Needle decompression treats pneumothorax ONLY — useless for haemothorax.
+      Large bore drain (28-32Fr) mandatory; consider autotransfusion of drained blood.
+    why_difficulty: >-
+      Absent right breath sounds + trauma: the instinct is needle decompression.
+      Physical examination percussion note is the discriminating skill.
+      Trachea midline clue rules out tension PTX to the attentive clinician.
+
+  - id: neurogenic-shock
+    category: trauma
+    difficulty: hard
+    esi_correct: 1
+    chief_complaint: "fell from a horse and can't feel or move his legs, blood pressure is very low"
+    scenario: >-
+      Cervical spinal cord injury with neurogenic shock — paradoxical bradycardia
+      and hypotension with warm peripheries. Vasopressors over aggressive fluids.
+    initial_vitals:
+      heart_rate: 48
+      blood_pressure_systolic: 72
+      blood_pressure_diastolic: 42
+      respiratory_rate: 18
+      oxygen_saturation: 94.0
+      temperature: 35.6
+      gcs: 14
+    patient_info:
+      patient_id: "trauma-003"
+      age: 38
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - complete lower limb paralysis (flaccid)
+        - upper limb weakness — incomplete
+        - loss of sensation below chest level
+        - hypotension
+        - paradoxical bradycardia despite hypotension
+        - warm peripheries despite shock
+        - priapism
+      medical_history:
+        - no significant past medical history
+      current_medications: []
+      allergies: []
+      time_of_onset: "1 hour ago, fell from horse at speed onto neck"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Neurological level and autonomic signs"
+        clinical_priority: 1
+        data:
+          motor_level: >-
+            Complete motor loss below T4 level. Partial power in C5-C6 myotomes.
+            Paradoxical diaphragmatic breathing pattern — intercostals non-functional.
+            Priapism present — autonomic sign of high cervical cord disruption.
+          sensory: >-
+            Complete loss of pain and temperature sensation below T4.
+            Proprioception absent. Upper limbs: partial preservation to C6.
+      - trigger: ask_history
+        reveal_label: "Mechanism and injury details"
+        clinical_priority: 2
+        data:
+          mechanism: >-
+            Horse fell on top of rider after jumping fence. Immediate paralysis
+            at scene. Helmet worn but neck injury from compression force.
+          c_spine: >-
+            Paramedics applied hard collar and spinal board. C5/6 fracture
+            on portable X-ray at scene — confirmed by paramedics.
+    confounders:
+      - "Bradycardia and hypotension in trauma universally suggest haemorrhage (wrong in SCI)"
+      - "Warm peripheries in shock is counter-intuitive — haemorrhage causes cold shut-down"
+      - "Over-aggressive fluid resuscitation risks pulmonary oedema in neurogenic shock"
+      - "Hypothermia from peripheral vasodilation — active warming required"
+    vital_drift:
+      per_step:
+        heart_rate: -2
+        blood_pressure_systolic: -5
+        temperature: -0.3
+        oxygen_saturation: -1.5
+      noise_sigma:
+        heart_rate: 2.0
+        blood_pressure_systolic: 4.0
+        temperature: 0.1
+      starts_at_step: 2
+    expected_clarify_steps: 1
+    key_clarify_actions:
+      - examine_patient
+    expected_actions:
+      - "maintain full c-spine immobilisation throughout"
+      - "noradrenaline infusion for neurogenic hypotension — NOT aggressive fluids"
+      - "atropine for symptomatic bradycardia <50bpm"
+      - "target MAP >85mmHg to optimise spinal cord perfusion"
+      - "cautious fluid resuscitation only if true hypovolaemia coexists"
+      - "neurosurgical and spinal surgery consult emergently"
+      - "MRI spine within hours"
+      - "pressure area care and catheterisation immediately"
+      - "warming blankets for hypothermia"
+      - "respiratory monitoring — high cord risks diaphragm weakness"
+      - "ICU admission"
+    key_reasoning_keywords:
+      - neurogenic shock
+      - spinal cord injury
+      - bradycardia
+      - vasopressors
+      - noradrenaline
+      - warm peripheries
+      - cervical cord
+      - priapism
+      - autonomic disruption
+      - map target
+    expected_severity: critical
+    max_steps: 4
+    undertriage_consequence: >-
+      Aggressive fluid resuscitation in neurogenic shock causes pulmonary oedema.
+      MAP <85mmHg causes secondary ischaemic cord injury — preventable neurological loss.
+    clinical_pearl: >-
+      Neurogenic shock: bradycardia + hypotension + warm peripheries after SCI.
+      Vasopressors (noradrenaline) over fluids. Target MAP >85mmHg for cord perfusion.
+      Distinguish from haemorrhagic shock (tachycardia + cold clammy peripheries).
+    why_difficulty: >-
+      Trauma + hypotension + bradycardia = counter-intuitive. All normal
+      reflexes point to haemorrhage management (wrong). Fluids vs vasopressors
+      and MAP target represent advanced trauma management knowledge.
+
+  - id: burns-inhalation-injury
+    category: trauma
+    difficulty: hard
+    esi_correct: 1
+    chief_complaint: "pulled from house fire, burns on chest and arms, voice is hoarse and getting worse"
+    scenario: >-
+      Major burns with inhalation injury — singed nasal hairs, carbonaceous sputum,
+      hoarse voice, and developing stridor. Early intubation before airway oedema
+      causes complete obstruction is the critical decision.
+    initial_vitals:
+      heart_rate: 122
+      blood_pressure_systolic: 104
+      blood_pressure_diastolic: 66
+      respiratory_rate: 26
+      oxygen_saturation: 91.0
+      temperature: 37.4
+      gcs: 13
+    patient_info:
+      patient_id: "trauma-004"
+      age: 45
+      sex: male
+      triage_arrival_mode: ambulance
+      symptoms:
+        - hoarse voice worsening
+        - singed nasal hair and eyebrows
+        - carbonaceous sputum
+        - facial burns
+        - stridor on deep inspiration
+        - deep partial and full-thickness burns chest and bilateral arms
+      medical_history:
+        - hypertension
+      current_medications:
+        - amlodipine 5mg OD
+      allergies: []
+      time_of_onset: "1 hour ago, trapped in burning building for approximately 20 minutes"
+    initial_labs: []
+    hidden_info:
+      - trigger: examine_patient
+        reveal_label: "Burn surface area and airway assessment"
+        clinical_priority: 1
+        data:
+          tbsa: >-
+            Burns: anterior chest 18%, bilateral upper arms 18% = 36% TBSA.
+            Full-thickness (leathery, insensate) on chest. Partial thickness on arms.
+            Circumferential forearm burns — escharotomy will be needed.
+          airway: >-
+            Stridor audible at rest now. Oropharynx: marked erythema, blistering,
+            soot deposits on posterior pharynx. Inhalation injury confirmed.
+            INTUBATE NOW — delay of minutes risks impossible intubation.
+      - trigger: check_vitals
+        reveal_label: "Carboxyhaemoglobin and fluid requirements"
+        clinical_priority: 1
+        data:
+          cohb: >-
+            COHb 28% on co-oximetry — significant carbon monoxide poisoning.
+            Standard pulse oximetry reads falsely NORMAL in CO poisoning — co-oximetry mandatory.
+          parkland: >-
+            Parkland formula: 4mL × 70kg weight × 36% TBSA = 10,080mL in 24h.
+            Half (5,040mL) in first 8 hours from time of injury (not arrival).
+    confounders:
+      - "Pulse oximeter reads falsely normal — co-oximetry is the only way to detect CO poisoning"
+      - "Window for intubation is narrow — delay of 30-60 minutes may make it impossible"
+      - "Circumferential burns may need escharotomy — frequently delayed or missed"
+      - "Parkland formula calculated from TIME OF INJURY not hospital arrival"
+    vital_drift:
+      per_step:
+        oxygen_saturation: -2.0
+        respiratory_rate: 3
+        gcs: -1
+      noise_sigma:
+        oxygen_saturation: 1.0
+        respiratory_rate: 1.0
+      starts_at_step: 1
+    expected_clarify_steps: 2
+    key_clarify_actions:
+      - examine_patient
+      - check_vitals
+    expected_actions:
+      - "RSI and early intubation NOW — stridor indicates impending complete obstruction"
+      - "100% oxygen for CO poisoning (reduces CO half-life from 5h to 90min)"
+      - "assess TBSA burns using rule of nines or Lund-Browder chart"
+      - "Parkland formula fluid resuscitation (4mL/kg/TBSA%) — time from injury"
+      - "co-oximetry for carboxyhaemoglobin — NOT standard pulse oximetry"
+      - "escharotomy for circumferential burns of limbs and chest if needed"
+      - "burns centre transfer once stabilised"
+      - "urinary catheter for hourly urine output (target 0.5-1mL/kg/hr)"
+      - "analgesia — burn pain is severe"
+      - "tetanus prophylaxis"
+    key_reasoning_keywords:
+      - inhalation injury
+      - burns
+      - tbsa
+      - parkland formula
+      - carbon monoxide
+      - co poisoning
+      - co-oximetry
+      - escharotomy
+      - early intubation
+      - hoarse voice
+    expected_severity: critical
+    max_steps: 3
+    undertriage_consequence: >-
+      Delayed intubation in inhalation injury — airway oedema makes intubation
+      impossible, requires surgical airway or patient dies from asphyxia.
+      CO poisoning missed on pulse oximetry — patient re-breathes air normally
+      while CO is still bound to haemoglobin.
+    clinical_pearl: >-
+      Hoarse voice + singed nasal hairs + stridor = intubate IMMEDIATELY.
+      Pulse oximetry is UNRELIABLE in CO poisoning — always use co-oximetry.
+      Parkland formula calculated from TIME OF INJURY, not time of hospital arrival.
+    why_difficulty: >-
+      Window for safe intubation is critically narrow. CO poisoning masked
+      by normal SpO2 reading. Parkland formula timing error is common.
+      Escharotomy need is frequently overlooked under acute stress.
