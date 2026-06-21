@@ -157,8 +157,8 @@ class TriageAction(BaseModel):
 
     action_type:         ActionType    = Field()
     esi_level:           Optional[int] = Field(default=None, ge=1, le=5)
-    clarifying_question: Optional[str] = Field(default=None)
-    reasoning:           str           = Field(default="")
+    clarifying_question: Optional[str] = Field(default=None, max_length=2000)
+    reasoning:           str           = Field(default="", max_length=8000)
     recommended_actions: List[str]     = Field(default_factory=list)
     confidence:          float         = Field(default=0.5, ge=0.0, le=1.0)
 

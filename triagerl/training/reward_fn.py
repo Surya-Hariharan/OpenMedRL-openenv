@@ -103,10 +103,32 @@ def extract_action_json(completion: str) -> Tuple[Optional[Dict[str, Any]], str]
 # Episode replay helper
 # ---------------------------------------------------------------------------
 
-_CLARIFY_TEMPLATES_FOR_REPLAY = [
-    "Any key past medical history, medications, and medication adherence?",
-    "Please provide repeat vital signs including oxygen saturation and GCS.",
-    "What are the focused physical examination findings including any red flags?",
+# Clarify templates stratified by trigger type.
+# Three templates per trigger ensure distribution diversity within an epoch
+# while remaining clinically appropriate for that information category.
+_CLARIFY_TEMPLATES_BY_TRIGGER: Dict[str, List[str]] = {
+    "ask_history": [
+        "Any key past medical history, medications, and medication adherence?",
+        "What relevant medical history, surgical history, and current medications are on file?",
+        "Are there any prior cardiac events, chronic conditions, or allergies I should know about?",
+    ],
+    "check_vitals": [
+        "Please provide repeat vital signs including oxygen saturation and GCS.",
+        "What are the most recent vital signs — specifically BP, HR, SpO2, and respiratory rate?",
+        "Can you confirm the current blood pressure, heart rate, oxygen saturation, and GCS?",
+    ],
+    "examine_patient": [
+        "What are the focused physical examination findings including any red flags?",
+        "What does the physical examination reveal? Any signs of shock, altered mentation, or acute distress?",
+        "Please describe the relevant physical findings, skin signs, and any examination red flags.",
+    ],
+}
+
+# Fallback pool used when the task's primary trigger cannot be determined.
+_CLARIFY_TEMPLATES_FALLBACK: List[str] = [
+    tmpl
+    for templates in _CLARIFY_TEMPLATES_BY_TRIGGER.values()
+    for tmpl in templates
 ]
 
 
@@ -114,6 +136,8 @@ def _replay_to_step(
     env: Any,
     step_context: str,
     seed: int,
+    task_id: Optional[str] = None,
+    task_map: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Any, List[ActualClarifyRecord]]:
     """
     Replay clarify actions to reconstruct mid-episode env state.
@@ -121,6 +145,10 @@ def _replay_to_step(
     If the prompt was generated from step 2 (one clarify already taken),
     we re-execute that same clarify action to restore env state before
     scoring the classify completion.
+
+    Template selection is now trigger-stratified: the task's first
+    ``key_clarify_action`` determines which trigger pool to draw from,
+    ensuring the replay action is clinically appropriate for the task.
 
     Returns
     -------
@@ -135,9 +163,22 @@ def _replay_to_step(
         # Initial observation — no replay needed
         return env, clarify_records
 
+    # Select template pool based on task's expected primary trigger.
+    pool = _CLARIFY_TEMPLATES_FALLBACK
+    if task_id and task_map:
+        task = task_map.get(task_id)
+        if task is not None:
+            primary_trigger = (
+                task.key_clarify_actions[0].lower()
+                if task.key_clarify_actions
+                else None
+            )
+            if primary_trigger and primary_trigger in _CLARIFY_TEMPLATES_BY_TRIGGER:
+                pool = _CLARIFY_TEMPLATES_BY_TRIGGER[primary_trigger]
+
     # Need to replay one clarify step to restore env state
     rng = random.Random(seed)
-    cq  = rng.choice(_CLARIFY_TEMPLATES_FOR_REPLAY)
+    cq  = rng.choice(pool)
 
     try:
         clarify_action = TriageAction(
@@ -241,9 +282,15 @@ def _score_completion(
         return -0.5, f"env_reset_failure:{str(e)[:80]}", None
 
     # Replay clarify actions using the same seed used when the prompt was
-    # generated. If the prompt contained a sample_seed we used that above
-    # to reset the env and derived replay_seed; otherwise compute one.
-    _, clarify_records = _replay_to_step(env, step_context, seed=replay_seed)
+    # generated. Pass task_id and task_map so the replay selects a
+    # trigger-appropriate clarify template instead of a random one.
+    _, clarify_records = _replay_to_step(
+        env,
+        step_context,
+        seed=replay_seed,
+        task_id=task_id,
+        task_map=task_map,
+    )
     steps_taken = len(clarify_records) + 1  # clarify steps + this classify step
 
     # ── Score the classify action ──────────────────────────────────────────────

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import sys
 import os
 
@@ -211,14 +212,17 @@ def run_keyword_policy() -> str:
     return _run_episode("Keyword Stuffing", plan)
 
 
-def run_simulation(policy_name: str) -> str:
-    if policy_name == "Good Policy":
-        return run_good_policy()
-    if policy_name == "Bad Policy":
-        return run_bad_policy()
-    if policy_name == "Keyword Stuffing":
-        return run_keyword_policy()
-    return "Unknown policy selected."
+async def run_simulation(policy_name: str) -> str:
+    """Run the selected demo policy off the event loop to avoid blocking the API."""
+    _dispatch = {
+        "Good Policy":      run_good_policy,
+        "Bad Policy":       run_bad_policy,
+        "Keyword Stuffing": run_keyword_policy,
+    }
+    fn = _dispatch.get(policy_name)
+    if fn is None:
+        return "Unknown policy selected."
+    return await asyncio.to_thread(fn)
 
 
 with gr.Blocks(title="TriageRL Demo", analytics_enabled=False) as demo:

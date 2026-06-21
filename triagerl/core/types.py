@@ -36,38 +36,42 @@ class PhaseState(str, Enum):
     """
     Episode phase labels for the triage state machine.
 
-    Transitions
-    -----------
-    ASSESSMENT → INTERVENTION | DISPOSITION
-    INTERVENTION → DISPOSITION
-    DISPOSITION → COMPLETED
+    Implemented transitions (enforced by PhaseStateMachine)
+    --------------------------------------------------------
+    ASSESSMENT  →clarify (budget ok)→  ASSESSMENT
+    ASSESSMENT  →clarify (exhausted)→  DISPOSITION
+    ASSESSMENT  →classify→             COMPLETED
+    DISPOSITION →classify→             COMPLETED
+    DISPOSITION →clarify (any)→        DISPOSITION   (penalised, no phase advance)
+    COMPLETED   →any→                  InvalidTransitionError
 
-    The environment enforces valid transitions.  An agent cannot jump from
-    ASSESSMENT directly to COMPLETED — it must pass through DISPOSITION
-    (i.e. emit a classify action).
+    The ``INTERVENTION`` value is declared for forward compatibility but is
+    NEVER produced by the current PhaseStateMachine.  Agents will never
+    observe ``phase == "intervention"`` in the current task corpus.  It is
+    reserved for a future action type that triggers immediate stabilisation
+    before formal disposition.  Do not branch on it in agent code.
 
     Attributes
     ----------
     ASSESSMENT
-        The agent is gathering information.  Only ``clarify`` actions are
-        fully rewarded in this phase.  Premature classification from this
-        phase incurs a temporal penalty when the task expected clarification.
+        Information-gathering phase.  ``clarify`` actions are rewarded here.
+        Premature classification incurs a temporal penalty on tasks that
+        expected clarification.
 
     INTERVENTION
-        Optional phase (not used in all tasks).  Represents a window where
-        the agent can request immediate stabilisation actions before formal
-        triage disposition.  Reserved for future task types.
+        **Not produced by the current environment.**  Declared for forward
+        compatibility only.  Reserved for a future stabilisation-action phase
+        between assessment and formal ESI disposition.
 
     DISPOSITION
-        The agent has emitted a ``classify`` action and the episode is
-        awaiting final grading.  No further clarification is permitted.
+        Post-classification holding phase.  Only ``classify`` advances to
+        COMPLETED; further ``clarify`` actions are accepted but penalised.
 
     COMPLETED
-        Terminal phase.  Reward has been computed and logged.  The episode
-        loop exits after entering this phase.
+        Terminal phase.  Reward has been computed and logged.
     """
     ASSESSMENT   = "assessment"
-    INTERVENTION = "intervention"
+    INTERVENTION = "intervention"   # declared but never produced — see docstring
     DISPOSITION  = "disposition"
     COMPLETED    = "completed"
 

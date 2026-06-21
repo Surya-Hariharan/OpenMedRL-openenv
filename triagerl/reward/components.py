@@ -121,9 +121,13 @@ def keyword_matches(text: str, keywords: Sequence[str]) -> List[str]:
     Two-tier keyword matching.
 
     Tier 1: full normalised keyword is a substring of normalised text.
-    Tier 2: any significant token from the keyword appears in the text.
-    Tier 2 handles paraphrasing without false positives from single-letter
-    tokens (excluded by len > 2 in _significant_tokens).
+    Tier 2: ALL significant tokens from the keyword appear in the text
+            (changed from ANY — prevents single-token fragment gaming).
+
+    Single-token keywords (after stripping stopwords) still require exact
+    appearance in the text.  Multi-token keywords require every significant
+    component to appear, preventing "cath" alone from matching
+    "cardiac catheterization laboratory activation".
 
     Parameters
     ----------
@@ -142,7 +146,8 @@ def keyword_matches(text: str, keywords: Sequence[str]) -> List[str]:
             matched.append(kw)
             continue
         sig = _significant_tokens(_tokenise(kw_low))
-        if sig and any(tok in lowered for tok in sig):
+        # Tier 2: require ALL significant tokens to appear (not ANY).
+        if sig and all(tok in lowered for tok in sig):
             matched.append(kw)
     return matched
 
@@ -154,13 +159,20 @@ def action_overlap(
     """
     Token-level overlap between recommended and expected actions.
 
-    For each expected action, checks whether any significant token from that
-    action appears in the joined recommended-action text.
+    For each expected action, checks whether a MAJORITY (>50%) of its
+    significant tokens appear in the joined recommended-action text.
+    This prevents gaming via single-word hints (e.g. writing "cath" to
+    match "activate cardiac catheterization laboratory").
+
+    Minimum threshold: at least 1 token AND >50% of significant tokens.
+    Short phrases (≤2 significant tokens) require ALL tokens to match.
 
     Returns
     -------
     (matched_count, matched_expected_list)
     """
+    import math
+
     if not expected:
         return 0, []
     rec_text = " ".join(_normalise(a) for a in recommended)
@@ -169,7 +181,11 @@ def action_overlap(
         toks = _significant_tokens(_tokenise(exp))
         if not toks:
             continue
-        if any(t in rec_text for t in toks):
+        hit_count = sum(1 for t in toks if t in rec_text)
+        # Require strict majority: ceil(n/2) tokens must match.
+        # For single-token phrases, the one token must match.
+        threshold = math.ceil(len(toks) / 2)
+        if hit_count >= threshold:
             matched.append(exp)
     return len(matched), matched
 

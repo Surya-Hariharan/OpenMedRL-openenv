@@ -31,28 +31,32 @@ Design contract
 
 Reward formula (compute_final_score)
 -------------------------------------
-    base = W_ESI   × esi_score
-         + W_TEMPORAL × temporal_score
+    base = W_ESI       × esi_score
+         + W_TEMPORAL  × temporal_score
          + W_REASONING × reasoning_score
-         + W_ACTIONS × action_score
-         + W_PATH × path_score
-
-    if esi_score == ESI_PERFECT_SCORE:
-        base += PERFECT_ESI_BONUS
+         + W_ACTIONS   × action_score
+         + W_PATH      × path_score
 
     adjusted, safety_factor = apply_safety_modifier(base, undertriage, multiplier)
     final = clamp(adjusted, -1.0, 1.0)
 
 Component weights
 -----------------
-    W_ESI       = 0.70   (correct classification is the primary task)
+    W_ESI       = 0.68   (correct classification is the primary task)
     W_TEMPORAL  = 0.10   (urgency-aware speed)
-    W_REASONING = 0.10   (clinical reasoning quality)
+    W_REASONING = 0.12   (clinical reasoning quality)
     W_ACTIONS   = 0.10   (intervention coverage)
-    W_PATH      = 0.05   (pathway bonus — small, additive, not weighted into sum)
+                  ────
+                  1.00   primary weights sum exactly to 1.0
 
-Note: W_PATH is intentionally outside the weight sum (not required to sum
-to 1.0).  It is a bonus for good clinical workflow, not a primary objective.
+    W_PATH      = 0.05   (pathway bonus — additive, outside weight budget)
+
+Note: W_PATH is intentionally outside the weight sum.  It is a bonus for
+good clinical workflow structure, not a primary scoring objective.  Without
+the bonus, a perfect episode scores exactly 1.0 before the path bonus.
+The PERFECT_ESI_BONUS was removed — it double-rewarded an already
+fully-weighted outcome (ESI_PERFECT already contributes 0.68 × 1.0 = 0.68).
+
 """
 from __future__ import annotations
 
@@ -88,24 +92,19 @@ from .safety import UNDERTRIAGE_MULTIPLIER, apply_safety_modifier, is_undertriag
 # Named constants — no magic numbers below this line
 # ---------------------------------------------------------------------------
 
-# Component weights (sum of W_ESI + W_TEMPORAL + W_REASONING + W_ACTIONS = 1.0)
-W_ESI:       float = 0.70
+# Primary weights — must sum exactly to 1.0
+W_ESI:       float = 0.68
 W_TEMPORAL:  float = 0.10
-W_REASONING: float = 0.13
+W_REASONING: float = 0.12
 W_ACTIONS:   float = 0.10
+# ── sum = 1.00 ──────────────────────────────────────────────────────────────
 
-# Path quality bonus — added to base AFTER weighted sum (not part of weight budget)
-W_PATH:      float = 0.08
-
-# Perfect-ESI bonus — added to base when esi_score == 1.0
-PERFECT_ESI_BONUS: float = 0.05
+# Path quality bonus — added AFTER weighted sum (not part of 1.0 budget)
+W_PATH:      float = 0.05
 
 # Reward clamp bounds
 REWARD_MIN: float = -1.0
 REWARD_MAX: float =  1.0
-
-# ESI score value for perfect classification (imported from components for DRY)
-from .components import ESI_SCORE_PERFECT  # noqa: E402
 
 # grade() legacy constants (single-action debug utility)
 _GRADE_CLARIFY_STUB_REWARD:  float = 0.02
@@ -332,10 +331,6 @@ def compute_final_score(
         + W_PATH      * path_score
     )
 
-    # Perfect-ESI bonus (additive, outside weight budget)
-    if esi_score == ESI_SCORE_PERFECT:
-        base += PERFECT_ESI_BONUS
-
     # ── Safety modifier ───────────────────────────────────────────────────────
     # Apply safety modifier but DO NOT hard-clamp the adjusted base to
     # [-1.0, 1.0] here. Clamping previously compressed diverse signals to a
@@ -540,9 +535,6 @@ def grade(action: TriageAction, task: Dict[str, Any]) -> TriageReward:
         + W_REASONING * reasoning_score
         + W_ACTIONS   * action_score
     )
-    if esi_score == ESI_SCORE_PERFECT:
-        base += PERFECT_ESI_BONUS
-
     base_adj, safety_factor = apply_safety_modifier(
         base, undertriage=undertriage, multiplier=safety_multiplier
     )

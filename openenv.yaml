@@ -28,21 +28,78 @@ tasks:
     description: "Atypical elderly sepsis masked by beta-blockade and CKD"
 action_space:
   type: structured_json
-  fields:
-    - {name: action_type, type: string, values: [classify, clarify]}
-    - {name: esi_level, type: integer, range: [1, 5]}
-    - {name: clarifying_question, type: string}
-    - {name: reasoning, type: string}
-    - {name: recommended_actions, type: "list[string]"}
-    - {name: confidence, type: float, range: [0.0, 1.0]}
+  discriminated_union:
+    field: action_type
+    branches:
+      classify:
+        - {name: esi_level, type: integer, range: [1, 5], required: true}
+        - {name: reasoning, type: string, max_length: 8000, required: true}
+        - {name: recommended_actions, type: "list[string]"}
+        - {name: confidence, type: float, range: [0.0, 1.0]}
+      clarify:
+        - {name: clarifying_question, type: string, max_length: 2000, required: true}
+        - {name: reasoning, type: string, max_length: 8000}
+        - {name: confidence, type: float, range: [0.0, 1.0]}
+
 observation_space:
   type: structured_json
   fields:
-    - {name: task_id, type: string, description: "Opaque per-episode case reference"}
+    - {name: task_ref, type: string, description: "Opaque per-episode case reference (rotated on reset — not the task id)"}
     - {name: patient, type: PatientPresentation}
     - {name: step_number, type: integer}
-    - {name: phase, type: string, values: [assessment, intervention, disposition, completed]}
-    - {name: clarification_history, type: "list[string]"}
+    - {name: max_steps, type: integer}
+    - name: phase
+      type: string
+      values: [assessment, disposition, completed]
+      note: >
+        The 'intervention' value is declared in the schema for forward compatibility
+        but is NEVER produced by the current environment. Agent code should not
+        branch on it.
+    - {name: clarification_history, type: "list[string]", description: "Last ≤5 clarifying questions asked"}
     - {name: additional_info_revealed, type: boolean}
-    - {name: deterioration_signal, type: float}
+    - name: deterioration_signal
+      type: float
+      range: [0.0, 1.0]
+      description: >
+        Urgency hint derived from the delta between initial visible vitals and
+        current visible vitals. Computed from: oxygen_saturation drop (÷20),
+        systolic BP drop (÷40), GCS drop (÷4), HR/temp deviation (÷25% of
+        baseline). NOTE: only uses vitals already visible to the agent — hidden
+        vitals do not contribute until revealed via check_vitals clarification.
+    - {name: revealed_info, type: "dict[str, any]", description: "Accumulated hidden information unlocked by clarify actions"}
+
+information_disclosure:
+  description: >
+    Hidden information is disclosed progressively via clarifying questions.
+    Every clarifying question maps to one of three trigger buckets based on
+    keyword matching. Once a trigger fires, the associated hidden_info payload
+    is merged into revealed_info. Re-asking the same trigger category returns
+    no new information.
+  triggers:
+    ask_history:
+      description: "Reveals past medical history, medications, medication adherence, and allergy details"
+      keywords: ["history", "medical", "medication", "adherence", "allergy", "allergies", "past", "prior", "background", "pmh"]
+    check_vitals:
+      description: "Reveals repeat vital signs: BP, HR, SpO2, GCS, and any repeat ECG findings"
+      keywords: ["vital", "vitals", "signs", "bp", "blood pressure", "heart rate", "spo2", "oxygen", "gcs", "repeat"]
+    examine_patient:
+      description: "Reveals focused physical examination findings, inspection, auscultation, and red-flag signs"
+      keywords: ["exam", "examine", "examination", "findings", "auscultate", "inspect", "physical", "assess", "palpate"]
+
 reward_range: [-1.0, 1.0]
+reward_components:
+  - {name: esi_accuracy, weight: 0.68, range: [-1.0, 1.0], description: "Accuracy of ESI level assignment"}
+  - {name: temporal_efficiency, weight: 0.10, range: [0.0, 1.0], description: "Urgency-aware speed (penalises extra steps on critical patients)"}
+  - {name: reasoning_quality, weight: 0.12, range: [0.0, 1.0], description: "Clinical reasoning keyword coverage with anti-gaming checks"}
+  - {name: action_coverage, weight: 0.10, range: [0.0, 1.0], description: "Fraction of expected interventions covered"}
+  - {name: path_quality, weight: 0.05, range: [0.0, 1.0], description: "Bonus for good clinical workflow sequence (additive, outside weight budget)"}
+  - {name: safety_modifier, range: [0.0, 1.0], description: "Undertriage multiplier: 0.25× when ESI ≤2 patient is classified higher"}
+curriculum:
+  clarify_penalty_dampening:
+    description: >
+      Float [0.0, 1.0] passed at env construction. Controls how aggressively
+      the environment terminates episodes that exceed the clarify budget. Set
+      to 0.0 during warm-up epochs to allow unrestricted exploration; ramp to
+      1.0 for full curriculum pressure. At dampening ≥ 0.5 the env may
+      terminate an episode early if clarify_count exceeds max(expected+2, 4).
+    default: 1.0

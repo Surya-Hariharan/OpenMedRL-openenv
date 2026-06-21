@@ -22,16 +22,24 @@ Fixes vs previous version
    Previous version re-inferred triggers, producing a metric inconsistent
    with actual episode events.
 
-3. _question_checks_vitals() retained for the vitals-bonus check only,
-   where it is used to detect whether the agent explicitly asked about vitals
-   (a question-level check, not a trigger-inference step).
+3. Double-counting eliminated. Previous version awarded bonuses for
+   (a) vitals checked and (b) reasoning keywords, both of which are already
+   measured by W_TEMPORAL and W_REASONING in the primary reward formula.
+   These have been replaced by a SEQUENCE QUALITY bonus that measures
+   something the primary formula cannot: did the agent gather information
+   in the clinically correct ORDER?
+
+   Sequence quality rule: when both check_vitals and ask_history are
+   relevant (both triggers have hidden info), checking vitals BEFORE
+   history is better clinical practice (vitals first establishes severity,
+   history refines diagnosis). +0.20 bonus for correct ordering.
 
 Design contract
 ---------------
 * Pure function — no I/O, no logging, no side-effects.
 * All trigger classification comes from the env reveal payloads, not
   from keyword re-inference.
-* Returns float ∈ [0.0, 1.0].
+* Returns float ∈ [-1.0, 1.0].
 """
 from __future__ import annotations
 
@@ -48,10 +56,11 @@ from triagerl.tasks.schema import TaskConfig
 # Named constants
 # ---------------------------------------------------------------------------
 
-BONUS_VITALS_CHECKED:          float = 0.20
-BONUS_RELEVANT_CLARIFY:        float = 0.30
-BONUS_REASONING_KEYWORDS:      float = 0.30
-KEYWORD_HIT_THRESHOLD:         int   = 2
+# Sequence quality: bonus for correct clinical information-gathering order.
+# Replaces the old BONUS_VITALS_CHECKED and BONUS_REASONING_KEYWORDS, which
+# double-counted signals already present in W_TEMPORAL and W_REASONING.
+BONUS_SEQUENCE_ORDER:          float = 0.20   # vitals before history when both relevant
+BONUS_RELEVANT_CLARIFY:        float = 0.30   # ≥1 clarify matched an expected trigger
 SPAM_PENALTY_PER_EXCESS:       float = 0.30
 IRRELEVANT_CLARIFY_TOLERANCE:  int   = 2
 LOW_DIVERSITY_THRESHOLD:       float = 0.50
@@ -63,13 +72,6 @@ KEYWORD_DENSITY_THRESHOLD:     float = 0.18
 KEYWORD_DENSITY_PENALTY:       float = 1.00
 REPETITION_START_COUNT:        int   = 3
 REPETITION_EXPONENT:           float = 1.35
-
-# Vital-sign terms used to detect explicit vital checking in question text.
-# This is a question-level check (not trigger inference).
-_VITAL_CHECK_TERMS: FrozenSet[str] = frozenset({
-    "vital", "vitals", "signs", "hr", "bp", "pulse",
-    "temperature", "oxygen", "spo2", "gcs",
-})
 
 
 # ---------------------------------------------------------------------------
@@ -101,17 +103,6 @@ class ActualClarifyRecord(NamedTuple):
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _question_checks_vitals(question: str) -> bool:
-    """
-    Return True if the question explicitly mentions vital sign terms.
-
-    Used only for the vitals-bonus check (Bonus 1), not for trigger
-    classification. This is intentionally broader than trigger inference.
-    """
-    lowered = question.lower()
-    return any(term in lowered for term in _VITAL_CHECK_TERMS)
-
-
 def _has_reasoning_structure(reasoning: str) -> bool:
     """
     Lightweight structure heuristic for clinical reasoning.
@@ -141,12 +132,11 @@ def score_clinical_path(
     task: TaskConfig,
 ) -> float:
     """
-    Score the clinical pathway quality for an episode.
+    Score the clinical pathway SEQUENCE QUALITY for an episode.
 
-    FIX: Signature changed. Now receives ActualClarifyRecord objects
-    (question + actual env trigger) instead of a raw action_history from
-    which triggers were re-inferred. This eliminates divergence between
-    path quality scores and actual episode events.
+    Unlike the primary reward components (ESI, temporal, reasoning, actions),
+    this scorer is the only place that measures ORDERING — did the agent gather
+    information in the clinically correct sequence?
 
     Parameters
     ----------
@@ -161,26 +151,35 @@ def score_clinical_path(
     Returns
     -------
     float
-        Positive values reward good pathway structure; negative values are
-        allowed to strongly penalise keyword stuffing.
+        Positive values reward good pathway structure; negative values
+        penalise stuffing and spam.
 
     Scoring breakdown
     -----------------
-    +0.20  vitals explicitly checked when task has a check_vitals layer
-    +0.30  ≥ 1 clarify action had a trigger matching task's expected triggers
-    +0.30  final reasoning mentions ≥ KEYWORD_HIT_THRESHOLD key reasoning keywords
-    -0.20  per irrelevant clarification beyond IRRELEVANT_CLARIFY_TOLERANCE
+    +0.20  Sequence quality: vitals were checked BEFORE history when
+           both check_vitals and ask_history are relevant for this task.
+           When only one trigger type is expected, this bonus is skipped.
+    +0.30  At least 1 clarify action matched an expected trigger key.
+    -0.30  Per irrelevant clarification beyond IRRELEVANT_CLARIFY_TOLERANCE.
+    + anti-gaming penalties (keyword density, low diversity, shallow reasoning)
     """
     score = 0.0
 
-    # ── Bonus 1: vitals checked (question-text level) ─────────────────────────
-    has_vitals_layer = any(h.trigger == "check_vitals" for h in task.hidden_info)
-    if has_vitals_layer:
-        vitals_checked = any(
-            _question_checks_vitals(r.question) for r in clarify_records
-        )
-        if vitals_checked:
-            score += BONUS_VITALS_CHECKED
+    # ── Bonus 1: Sequence quality (replaces old BONUS_VITALS_CHECKED) ─────────
+    # Reward checking vitals BEFORE asking history when both are expected.
+    # This measures clinical protocol adherence, not just "did they check vitals"
+    # (which is already captured by the clarify shaping reward).
+    has_vitals_layer  = any(h.trigger == "check_vitals" for h in task.hidden_info)
+    has_history_layer = any(h.trigger == "ask_history"  for h in task.hidden_info)
+
+    if has_vitals_layer and has_history_layer:
+        trigger_order = [
+            r.trigger for r in clarify_records
+            if r.trigger in ("check_vitals", "ask_history")
+        ]
+        # Vitals-before-history is the correct clinical order
+        if trigger_order and trigger_order[0] == "check_vitals":
+            score += BONUS_SEQUENCE_ORDER
 
     # ── Bonus 2: relevant clarify actions (actual trigger, not re-inferred) ───
     expected_triggers: FrozenSet[str] = frozenset(
@@ -199,20 +198,16 @@ def score_clinical_path(
     if relevant_count >= 1:
         score += BONUS_RELEVANT_CLARIFY
 
-    # ── Bonus 3: final reasoning keyword coverage ─────────────────────────────
-    reasoning_lower = final_reasoning.lower()
-    keyword_hits = sum(
-        1 for kw in task.key_reasoning_keywords
-        if kw.lower() in reasoning_lower
-    )
-    if keyword_hits >= KEYWORD_HIT_THRESHOLD:
-        score += BONUS_REASONING_KEYWORDS
+    # NOTE: Bonus 3 (reasoning keyword coverage) removed — it double-counted
+    # W_REASONING in the primary reward. Path quality measures sequence structure,
+    # not vocabulary coverage.
 
     # ── Anti-gaming: keyword-stuffing / low-diversity penalty
     # Penalise unnaturally repetitive or dense use of keywords in final
     # reasoning. This is a small penalty so it does not dominate the
     # path score but provides a gradient against stuffing.
-    tokens = [t for t in re.findall(r"[a-zA-Z0-9]+", final_reasoning.lower()) if len(t) > 2]
+    reasoning_lower = final_reasoning.lower()
+    tokens = [t for t in re.findall(r"[a-zA-Z0-9]+", reasoning_lower) if len(t) > 2]
     sig_tokens = [t for t in tokens if t not in {"the", "and", "for", "with", "that", "this", "from", "are", "was", "were"}]
     unique_ratio = (len(set(sig_tokens)) / len(sig_tokens)) if sig_tokens else 1.0
 
